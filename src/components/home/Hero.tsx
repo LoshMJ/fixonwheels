@@ -1,19 +1,15 @@
-import galaxy from "../assets/galaxy-bg.jpg";
-import iphone from "../assets/iphone.png";
-import astronaut from "../assets/astronaut.png";
-import GlowButton from "../components/ui/GlowButton";
-import ExploreButton from "../components/ui/ExploreButton";
+import iphone from "../../assets/iphone.png";
+import astronaut from "../../assets/astronaut.png";
+import GlowButton from "../ui/GlowButton";
+import ExploreButton from "../ui/ExploreButton";
 
 export default function Hero() {
   return (
     <section className="relative w-full h-screen flex items-center justify-center overflow-hidden">
 
       {/* Background */}
-      <img
-        src={galaxy}
-        className="absolute inset-0 w-full h-full object-cover opacity-90"
-      />
-      <div className="absolute inset-0 bg-black/40" />
+      
+      <div className="absolute inset-0" />
 
       {/* Floating iPhone (BEHIND TEXT) */}
       <img
@@ -67,6 +63,7 @@ export default function Hero() {
           <GlowButton className="mt-2 h-12 w-[47%] text-center">
             Get Started
           </GlowButton>
+
 
           <ExploreButton className="mt-2 h-12 w-[47%]">
             Explore
