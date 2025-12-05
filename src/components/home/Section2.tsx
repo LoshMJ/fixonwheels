@@ -1,5 +1,5 @@
 import React from "react";
-import galaxy from "../assets/galaxy-bg.jpg";
+import galaxy from "../../assets/galaxy-bg.jpg";
 
 
 const Section2: React.FC = () => {
