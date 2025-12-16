@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\src",
+    "\\src\\assets",
+    "\\src\\components",
+    "\\src\\components\\home",
+    "\\src\\layouts",
+    "\\src\\pages",
+    "\\src\\tailwind"
+  ],
+  "SelectedNode": "\\src\\components\\home\\Section2.tsx",
+  "PreviewInSolutionExplorer": false
+}
