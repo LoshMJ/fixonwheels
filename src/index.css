@@ -12,7 +12,6 @@
 /* Make sure body doesn't override layout */
 body {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  background-color: #05050a; /* dark base */
   color: white;
   overflow-x: hidden;
 }
@@ -36,6 +35,7 @@ body {
   animation: floatRotate 8s ease-in-out infinite;
 }
 
+<<<<<<< HEAD
 @keyframes phoneDrop {
   0% {
     transform: translate(-50%, -600px) rotate(-15deg);
@@ -93,4 +93,148 @@ body {
 }
 .animate-repairman-enter {
   animation: repairmanEnter 1s ease-in-out forwards;
+=======
+@keyframes float {
+  0% { transform: translateY(-50%) translateX(0); }
+  50% { transform: translateY(-60%) translateX(5px); }
+  100% { transform: translateY(-50%) translateX(0); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeSlide {
+  animation: fadeSlide 0.6s ease-out forwards;
+}
+/* Floating animation */
+.floating-phone {
+  animation: floatAnim 4s ease-in-out infinite;
+}
+
+@keyframes floatAnim {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-18px); }
+  100% { transform: translateY(0px); }
+}
+
+
+.phone-card {
+  position: relative;
+  width: 220px;
+  height: 430px;
+  border-radius: 35px;
+  border: 2px solid rgba(255,255,255,0.15);
+  background: black;
+  padding: 8px;
+  filter: drop-shadow(0 0 20px rgba(168,85,247,0.5));
+}
+
+/* inner gradient screen */
+.phone-screen {
+  width: 100%;
+  height: 100%;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #ff007a, #b81cd7, #4a3aff, #1a1a40);
+  background-size: 200% 200%;
+  animation: phoneGradient 6s ease infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes phoneGradient {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+.phone-hello {
+  font-size: 1.4rem;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  line-height: 1.4;
+}
+
+/* side buttons */
+.phone-btn {
+  position: absolute;
+  width: 3px;
+  background: #2b2b2b;
+}
+
+.phone-btn-right {
+  right: -5px;
+  top: 30%;
+  height: 45px;
+}
+
+.phone-btn-left-top {
+  left: -5px;
+  top: 26%;
+  height: 30px;
+}
+
+.phone-btn-left-mid {
+  left: -5px;
+  top: 36%;
+  height: 30px;
+}
+
+/* top notch */
+.phone-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 38%;
+  height: 18px;
+  background: black;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.phone-speaker {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  height: 3px;
+  background: #222;
+  border-radius: 2px;
+}
+
+.phone-camera {
+  position: absolute;
+  top: 6px;
+  left: 20%;
+  width: 8px;
+  height: 8px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 50%;
+}
+
+.phone-camera-inner {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 4px;
+  height: 4px;
+  background: rgba(0,0,255,0.3);
+  border-radius: 50%;}
+
+  .repair-grid {
+  display: none;
+}
+
+.page-repair .repair-grid {
+  display: block;
+>>>>>>> f24a9c239ee6a59e2eab902f79615ce427c72c1b
 }
