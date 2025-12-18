@@ -1,10 +1,7 @@
 import Section2 from "../components/home/Section2";
-<<<<<<< HEAD
-import Drop from "../components/home/Drop";
-=======
->>>>>>> f24a9c239ee6a59e2eab902f79615ce427c72c1b
 import Hero from "../components/home/Hero";
 import Howitworks from "../components/home/Howitworks";
+import Drop from "../components/home/Drop";
 
 export default function Home() {
   return (
@@ -13,15 +10,9 @@ export default function Home() {
       style={{ backgroundImage: "url('/src/assets/galaxy-bg.jpg')" }}
     >
       <Hero />
-<<<<<<< HEAD
-      <Section2/>
-      <Howitworks />
-      <Drop/>
-    </>
-=======
       <Section2 />
       <Howitworks />
+      <Drop />
     </div>
->>>>>>> f24a9c239ee6a59e2eab902f79615ce427c72c1b
   );
 }
