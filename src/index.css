@@ -35,7 +35,6 @@ body {
   animation: floatRotate 8s ease-in-out infinite;
 }
 
-<<<<<<< HEAD
 @keyframes phoneDrop {
   0% {
     transform: translate(-50%, -600px) rotate(-15deg);
@@ -93,8 +92,8 @@ body {
 }
 .animate-repairman-enter {
   animation: repairmanEnter 1s ease-in-out forwards;
-=======
-@keyframes float {
+
+  @keyframes float {
   0% { transform: translateY(-50%) translateX(0); }
   50% { transform: translateY(-60%) translateX(5px); }
   100% { transform: translateY(-50%) translateX(0); }
@@ -236,5 +235,5 @@ body {
 
 .page-repair .repair-grid {
   display: block;
->>>>>>> f24a9c239ee6a59e2eab902f79615ce427c72c1b
+}
 }
