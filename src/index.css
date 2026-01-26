@@ -38,11 +38,6 @@ body {
   animation: floatRotate 8s ease-in-out infinite;
 }
 
-<<<<<<< HEAD
-/* ================= PHONE DROP ================= */
-
-=======
->>>>>>> b5786fc30ee633a12fa436dad02eca2e7eb00c68
 @keyframes phoneDrop {
   0% { transform: translate(-50%, -600px) rotate(-15deg); }
   70% { transform: translate(-50%, 300px) rotate(6deg); }
@@ -99,16 +94,8 @@ body {
 
 .animate-repairman-enter {
   animation: repairmanEnter 1s ease-in-out forwards;
-<<<<<<< HEAD
-}
-
-/* ================= FLOAT ================= */
-
-@keyframes float {
-=======
 
   @keyframes float {
->>>>>>> b5786fc30ee633a12fa436dad02eca2e7eb00c68
   0% { transform: translateY(-50%) translateX(0); }
   50% { transform: translateY(-60%) translateX(5px); }
   100% { transform: translateY(-50%) translateX(0); }
@@ -253,8 +240,5 @@ body {
 
 .page-repair .repair-grid {
   display: block;
-<<<<<<< HEAD
-=======
 }
->>>>>>> b5786fc30ee633a12fa436dad02eca2e7eb00c68
 }
