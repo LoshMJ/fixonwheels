@@ -2,6 +2,7 @@ import React from "react";
 import sectionimg from "../../assets/section2.4.jpeg";
 import ExploreButton from "../ui/ExploreButton";
 import { rainbowText } from "../ui/rainbowText";
+import { Link } from "react-router-dom";
 
 const Section2: React.FC = () => {
   const steps = [
@@ -45,10 +46,12 @@ const Section2: React.FC = () => {
         <p className="text-lg md:text-xl font-light max-w-2xl mx-auto mb-10 leading-relaxed">
           WE BUILT A SERVICE THAT WORKS AROUND YOUR TIME, YOUR HOME, AND YOUR CONVENIENCE
         </p>
+          <Link to="/repair">
 
         <ExploreButton className="h-12 px-8">
           Try Now
         </ExploreButton>
+        </Link>
       </div>
 
       {/* Steps */}
@@ -58,6 +61,7 @@ const Section2: React.FC = () => {
             key={index}
             className="bg-white/5 backdrop-blur-md p-6 rounded-xl border border-white/10 shadow-lg hover:shadow-purple-900/40 transition"
           >
+<<<<<<< HEAD
             <h3 className="text-xl font-semibold mb-4">
               <span className="font-semibold">{step.title}</span>
             </h3>
@@ -65,6 +69,10 @@ const Section2: React.FC = () => {
             <p className="text-sm opacity-80 leading-relaxed">
               {step.desc}
             </p>
+=======
+            <h3 className="text-xl font-semibold mb-4">{step.title}</h3>
+            <p className="text-sm opacity-80 leading-relaxed">{step.desc}</p>
+>>>>>>> b5786fc30ee633a12fa436dad02eca2e7eb00c68
           </div>
         ))}
       </div>

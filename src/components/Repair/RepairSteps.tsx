@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import iphoneMock from "../../assets/iphone2.png";
 import SpinningCard from "../../components/ui/Card";
 import { phoneImages } from "./PhoneImages";
-import stepsbg from "../../assets/steps-bg.jpg";
+import galaxybg from "../../assets/galaxy-bg.jpg";
 import {GridScan} from './GridScan';
 import {
   DEVICES,
@@ -92,7 +92,10 @@ const modelMultiplier: Record<string, number> = {
 
 const TRAVEL_FEE = 15;
 
+
+
 function computePricing(
+  
   model: string | null,
   issue: string | null
 ): { repair: number; travel: number; total: number } | null {
@@ -105,6 +108,29 @@ function computePricing(
   const travel = TRAVEL_FEE;
   const total = repair + travel;
   return { repair, travel, total };
+}
+function saveCustomDevice(device: {
+  id: string;
+  brand: string;
+  model: string;
+  displayName: string;
+}) {
+  const existing = JSON.parse(localStorage.getItem("customDevices") || "[]");
+  localStorage.setItem(
+    "customDevices",
+    JSON.stringify([...existing, device])
+  );
+}
+
+function saveCustomIssue(issue: {
+  id: string;
+  label: string;
+}) {
+  const existing = JSON.parse(localStorage.getItem("customIssues") || "[]");
+  localStorage.setItem(
+    "customIssues",
+    JSON.stringify([...existing, issue])
+  );
 }
 
 /* ----------------------------------------
@@ -128,6 +154,8 @@ export default function RepairSteps() {
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [selectedIssue, setSelectedIssue] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
+const [customDevice, setCustomDevice] = useState("");
+const [customIssue, setCustomIssue] = useState("");
 
   const [direction, setDirection] = useState<1 | -1>(1);
 
@@ -158,13 +186,39 @@ export default function RepairSteps() {
 
   const handleNext = () => {
     // Step 1 → Step 2
-    if (currentStep === 0) {
-      if (!isStep1Valid) return;
-      if (maxUnlockedStep < 1) setMaxUnlockedStep(1);
-      setDirection(1);
-      setCurrentStep(1);
-      return;
-    }
+if (currentStep === 0) {
+  // Handle custom device
+  if (selectedModel === "Other" && customDevice.trim()) {
+    const newDevice = {
+      id: `custom-device-${Date.now()}`,
+      brand: "Custom",
+      model: customDevice.trim(),
+      displayName: customDevice.trim(),
+    };
+
+    saveCustomDevice(newDevice);
+    setSelectedModel(customDevice.trim());
+  }
+
+  // Handle custom issue
+  if (selectedIssue === "Other" && customIssue.trim()) {
+    const newIssue = {
+      id: `custom-issue-${Date.now()}`,
+      label: customIssue.trim(),
+    };
+
+    saveCustomIssue(newIssue);
+    setSelectedIssue(customIssue.trim());
+  }
+
+  if (!isStep1Valid) return;
+
+  if (maxUnlockedStep < 1) setMaxUnlockedStep(1);
+  setDirection(1);
+  setCurrentStep(1);
+  return;
+}
+
 
     // Step 2 → Step 3
     if (currentStep === 1) {
@@ -229,22 +283,8 @@ export default function RepairSteps() {
   })();
 
   return (
-<section className="relative bg-black overflow-hidden">
-  {/* ================= GRIDSCAN BACKGROUND ================= */}
-  <div className="absolute inset-0 z-0 pointer-events-none">
-    <GridScan
-      sensitivity={0.55}
-      lineThickness={1}
-      linesColor="#392e4e"
-      gridScale={0.1}
-      scanColor="#FF9FFC"
-      scanOpacity={0.35}
-      enablePost
-      bloomIntensity={0.6}
-      chromaticAberration={0.002}
-      noiseIntensity={0.01}
-    />
-  </div>
+<section className="relative">
+<div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/90" />
       {/* purple glow behind card */}
       {/* ================= PURPLE GLOW ================= */}
   <div className="pointer-events-none absolute inset-0 z-10">
@@ -263,7 +303,7 @@ export default function RepairSteps() {
               initial={{ opacity: 0, x: -60, scale: 0.8 }}
               animate={{ opacity: 0.5, x: -40, scale: 0.85 }}
               exit={{ opacity: 0, x: -60, scale: 0.8 }}
-              className="hidden md:block absolute top-1/2 -translate-y-1/2 left-[-40%] w-[260px] h-[320px] rounded-[28px]
+              className="hidden md:block absolute top-1/2 -translate-y-1/2 left-[-23%] w-[30%] h-[320px] rounded-[28px]
               bg-white/5 border border-white/5 backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.5)] rotate-[-12deg]"
             >
               <div className="h-full flex flex-col justify-center px-8 text-white/70">
@@ -286,7 +326,7 @@ export default function RepairSteps() {
               initial={{ opacity: 0, x: 60, scale: 0.8 }}
               animate={{ opacity: 0.5, x: 40, scale: 0.85 }}
               exit={{ opacity: 0, x: 60, scale: 0.8 }}
-              className="hidden md:block absolute top-1/2 -translate-y-1/2 right-[-35%] w-[260px] h-[320px] rounded-[28px]
+              className="hidden md:block absolute top-1/2 -translate-y-1/2 right-[-23%] w-[30%] h-[320px] rounded-[28px]
               bg-white/5 border border-white/5 backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.5)] rotate-[12deg]"
             >
               <div className="h-full flex flex-col justify-center px-8 text-white/70">
@@ -341,14 +381,19 @@ export default function RepairSteps() {
 
                 {/* STEP CONTENT */}
                 {currentStep === 0 && (
-                  <Step1Content
-                    selectedModel={selectedModel}
-                    setSelectedModel={setSelectedModel}
-                    selectedIssue={selectedIssue}
-                    setSelectedIssue={setSelectedIssue}
-                    notes={notes}
-                    setNotes={setNotes}
-                  />
+<Step1Content
+  selectedModel={selectedModel}
+  setSelectedModel={setSelectedModel}
+  selectedIssue={selectedIssue}
+  setSelectedIssue={setSelectedIssue}
+  notes={notes}
+  setNotes={setNotes}
+  customDevice={customDevice}
+  setCustomDevice={setCustomDevice}
+  customIssue={customIssue}
+  setCustomIssue={setCustomIssue}
+/>
+
                 )}
 
                 {currentStep === 1 && (
@@ -478,6 +523,9 @@ function Step1Content({
 }) {
   const [modelOpen, setModelOpen] = useState(false);
   const [issueOpen, setIssueOpen] = useState(false);
+  const [customDevice, setCustomDevice] = useState("");
+const [customIssue, setCustomIssue] = useState("");
+
 
   // ✅ SINGLE SOURCE OF TRUTH FOR IMAGE
   const phoneImage =

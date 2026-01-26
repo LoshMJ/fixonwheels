@@ -14,6 +14,7 @@ export default function App() {
 
   return (
     <MainLayout>
+<<<<<<< HEAD
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Home />} />
@@ -24,6 +25,15 @@ export default function App() {
           <Route path="/register" element={<Register />} />
         </Routes>
       </AnimatePresence>
+=======
+      <Routes>
+      = <Route path="/" element={<Home />} />
+        <Route path="/repair" element={<Repair />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/chats" element={<Chats />} />
+        <Route path="/login" element={<Login />} />
+      </Routes>
+>>>>>>> b5786fc30ee633a12fa436dad02eca2e7eb00c68
     </MainLayout>
   );
 }
