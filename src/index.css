@@ -9,12 +9,15 @@
   box-sizing: border-box;
 }
 
-/* Make sure body doesn't override layout */
+/* Body defaults */
 body {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   color: white;
   overflow-x: hidden;
 }
+
+/* ================= FLOAT ANIMATIONS ================= */
+
 @keyframes floatSlow {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-15px); }
@@ -36,23 +39,17 @@ body {
 }
 
 @keyframes phoneDrop {
-  0% {
-    transform: translate(-50%, -600px) rotate(-15deg);
-  }
-  70% {
-    transform: translate(-50%, 300px) rotate(6deg);
-  }
-  85% {
-    transform: translate(-50%, 260px) rotate(-4deg);
-  }
-  100% {
-    transform: translate(-50%, 300px) rotate(0deg);
-  }
+  0% { transform: translate(-50%, -600px) rotate(-15deg); }
+  70% { transform: translate(-50%, 300px) rotate(6deg); }
+  85% { transform: translate(-50%, 260px) rotate(-4deg); }
+  100% { transform: translate(-50%, 300px) rotate(0deg); }
 }
 
 .phone-drop {
   animation: phoneDrop 2.2s ease-out forwards;
 }
+
+/* ================= GLASS SHARDS ================= */
 
 .glass {
   position: absolute;
@@ -63,33 +60,38 @@ body {
   opacity: 0;
 }
 
-/* Explode shards */
+/* Explode */
+@keyframes explode {
+  from { opacity: 1; transform: translate(0,0) rotate(0deg); }
+  to { opacity: 1; transform: translate(var(--x), var(--y)) rotate(120deg); }
+}
+
 .explode {
   animation: explode 1s ease-out forwards;
 }
-@keyframes explode {
-  from { opacity:1; transform: translate(0,0) rotate(0deg); }
-  to { opacity:1; transform: translate(var(--x), var(--y)) rotate(120deg); }
-}
+
 .shard1.explode { --x: -80px; --y: -60px; }
 .shard2.explode { --x: 80px; --y: -70px; }
 .shard3.explode { --x: -60px; --y: 50px; }
 .shard4.explode { --x: 60px; --y: 60px; }
 
-/* Merge shards smoothly to center — remain visible */
+/* Merge */
+@keyframes merge {
+  from { transform: translate(var(--x), var(--y)) rotate(120deg); opacity: 1; }
+  to { transform: translate(0,0) rotate(0deg); opacity: 1; }
+}
+
 .merge {
   animation: merge 1.5s ease-in-out forwards;
 }
-@keyframes merge {
-  from { transform: translate(var(--x), var(--y)) rotate(120deg); opacity:1; }
-  to { transform: translate(0,0) rotate(0deg); opacity:1; }
-}
 
-/* Repairman entry */
+/* ================= REPAIRMAN ================= */
+
 @keyframes repairmanEnter {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6) rotate(-180deg); }
   100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
 }
+
 .animate-repairman-enter {
   animation: repairmanEnter 1s ease-in-out forwards;
 
@@ -103,6 +105,8 @@ body {
   animation: float 4s ease-in-out infinite;
 }
 
+/* ================= FADE ================= */
+
 @keyframes fadeSlide {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -111,10 +115,8 @@ body {
 .animate-fadeSlide {
   animation: fadeSlide 0.6s ease-out forwards;
 }
-/* Floating animation */
-.floating-phone {
-  animation: floatAnim 4s ease-in-out infinite;
-}
+
+/* ================= PHONE UI ================= */
 
 @keyframes floatAnim {
   0% { transform: translateY(0px); }
@@ -122,6 +124,9 @@ body {
   100% { transform: translateY(0px); }
 }
 
+.floating-phone {
+  animation: floatAnim 4s ease-in-out infinite;
+}
 
 .phone-card {
   position: relative;
@@ -134,7 +139,6 @@ body {
   filter: drop-shadow(0 0 20px rgba(168,85,247,0.5));
 }
 
-/* inner gradient screen */
 .phone-screen {
   width: 100%;
   height: 100%;
@@ -155,13 +159,11 @@ body {
 
 .phone-hello {
   font-size: 1.4rem;
-  color: white;
-  text-align: center;
   font-weight: bold;
-  line-height: 1.4;
+  text-align: center;
 }
 
-/* side buttons */
+/* Buttons */
 .phone-btn {
   position: absolute;
   width: 3px;
@@ -186,7 +188,7 @@ body {
   height: 30px;
 }
 
-/* top notch */
+/* Notch */
 .phone-notch {
   position: absolute;
   top: 0;
@@ -227,9 +229,12 @@ body {
   width: 4px;
   height: 4px;
   background: rgba(0,0,255,0.3);
-  border-radius: 50%;}
+  border-radius: 50%;
+}
 
-  .repair-grid {
+/* ================= PAGE STATES ================= */
+
+.repair-grid {
   display: none;
 }
 

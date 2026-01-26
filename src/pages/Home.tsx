@@ -1,12 +1,14 @@
-import Section2 from "../components/home/Section2";
+
+import Secion2 from "../components/home/Section2";
 import Hero from "../components/home/Hero";
+import Section2 from "../components/home/Section2";
 import Howitworks from "../components/home/Howitworks";
 import Drop from "../components/home/Drop";
 
 export default function Home() {
   return (
-    <div 
-      className="w-full min-h-screen bg-cover bg-no-repeat bg-top"
+    <div
+      className="min-h-screen w-full"
       style={{ backgroundImage: "url('/src/assets/galaxy-bg.jpg')" }}
     >
       <Hero />
