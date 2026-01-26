@@ -2,6 +2,7 @@ import React from "react";
 import sectionimg from "../../assets/section2.4.jpeg";
 import ExploreButton from "../ui/ExploreButton";
 import { rainbowText } from "../ui/rainbowText";
+import { Link } from "react-router-dom";
 
 const Section2: React.FC = () => {
   const steps = [
@@ -42,10 +43,12 @@ const Section2: React.FC = () => {
         <p className="text-lg md:text-xl font-light max-w-2xl mx-auto mb-8 leading-relaxed mt-20">
           WE BUILT A SERVICE THAT WORKS AROUND YOUR TIME, YOUR HOME, AND YOUR CONVENIENCE
         </p>
+          <Link to="/repair">
 
         <ExploreButton className="mt-2 h-12 w-[18%]">
                     Try now
         </ExploreButton>
+        </Link>
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto mt-16 grid grid-cols-1 md:grid-cols-4 gap-6 px-4 text-center">

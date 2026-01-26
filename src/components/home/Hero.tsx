@@ -2,7 +2,7 @@ import iphone from "../../assets/iphone.png";
 import astronaut from "../../assets/astronaut.png";
 import GlowButton from "../ui/GlowButton";
 import ExploreButton from "../ui/ExploreButton";
-
+import { Link } from "react-router-dom";
 export default function Hero() {
   return (
     <section className="relative w-full h-screen flex items-center justify-center overflow-hidden">
@@ -60,9 +60,11 @@ export default function Hero() {
 
         {/* Lowered buttons */}
         <div className="mt-2 flex justify-center gap-6">
-          <GlowButton className="mt-2 h-12 w-[47%] text-center">
+          <Link to="/repair">
+          <GlowButton className="mt-2 h-12 w-[100%] text-center">
             Get Started
           </GlowButton>
+          </Link>
 
 
           <ExploreButton className="mt-2 h-12 w-[47%]">
