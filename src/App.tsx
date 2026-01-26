@@ -11,7 +11,7 @@ export default function App() {
   return (
     <MainLayout>
       <Routes>
-        <Route path="/" element={<Home />} />
+      = <Route path="/" element={<Home />} />
         <Route path="/repair" element={<Repair />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/chats" element={<Chats />} />

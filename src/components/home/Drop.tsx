@@ -1,33 +1,30 @@
 import { useEffect, useRef, useState } from "react";
-import iphone from "../../assets/iphone2.png";
-import repairman from "../../assets/astronaut.png";
+
+type Stat = {
+  label: string;
+  value: number;
+  suffix?: string;
+};
 
 export default function DropSection() {
   const sectionRef = useRef<HTMLDivElement | null>(null);
+  const [start, setStart] = useState(false);
 
-  const [play, setPlay] = useState(false);
-  const [shardsExploded, setShardsExploded] = useState(false);
-  const [shardsMerged, setShardsMerged] = useState(false);
+  const stats: Stat[] = [
+    { label: "Repairs Completed", value: 1300, suffix: "+" },
+    { label: "Customer Satisfaction", value: 98, suffix: "%" },
+    { label: "Verified Technicians", value: 50, suffix: "+" },
+    { label: "Average Response Time", value: 30, suffix: " min" },
+  ];
 
+  const [counts, setCounts] = useState(stats.map(() => 0));
+
+  // Detect scroll into view
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setPlay(false);
-          setShardsExploded(false);
-          setShardsMerged(false);
-
-          requestAnimationFrame(() => setPlay(true));
-
-          // Shards explode after phone impact
-          setTimeout(() => setShardsExploded(true), 1600);
-
-          // Shards merge + repairman appears
-          setTimeout(() => setShardsMerged(true), 2200);
-        } else {
-          setPlay(false);
-          setShardsExploded(false);
-          setShardsMerged(false);
+          setStart(true);
         }
       },
       { threshold: 0.4 }
@@ -37,62 +34,68 @@ export default function DropSection() {
     return () => observer.disconnect();
   }, []);
 
+  // Animate numbers
+  useEffect(() => {
+    if (!start) return;
+
+    stats.forEach((stat, index) => {
+      let startValue = 0;
+      const duration = 1200;
+      const startTime = performance.now();
+
+      const animate = (currentTime: number) => {
+        const progress = Math.min((currentTime - startTime) / duration, 1);
+        const value = Math.floor(progress * stat.value);
+
+        setCounts((prev) => {
+          const updated = [...prev];
+          updated[index] = value;
+          return updated;
+        });
+
+        if (progress < 1) requestAnimationFrame(animate);
+      };
+
+      requestAnimationFrame(animate);
+    });
+  }, [start]);
+
   return (
     <section
       ref={sectionRef}
-      className="relative w-full min-h-screen bg-[#0a0220] flex overflow-hidden"
+      className="relative w-full py-28 px-6 bg-transparent"
     >
-      {/* LEFT TEXT */}
-      <div className="w-1/2 flex items-center px-20 text-white z-10">
-        <div>
-          <h2 className="text-5xl font-bold mb-6">
-            Accidents Happen.
-            <span className="block text-purple-400">We Fix Them.</span>
-          </h2>
-          <p className="text-gray-300 text-lg max-w-xl">
-            Dropped phone? Cracked screen?  
-            Our technicians fix it at your doorstep.
-          </p>
+  
+      {/* Glass Card */}
+      <div className="relative max-w-6xl mx-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-16 shadow-[0_0_80px_rgba(124,58,237,0.25)]">
+        {/* Heading */}
+        <h2 className="text-4xl md:text-5xl font-bold mb-6 text-center">
+          Trusted by Thousands,
+          <span className="block text-purple-400 mt-2">
+            Built for Real Life Repairs
+          </span>
+        </h2>
+
+        <p className="text-gray-300 text-center max-w-3xl mx-auto mb-16 text-lg">
+          From cracked screens to complex repairs, FixOnWheels delivers fast,
+          transparent, doorstep service backed by real technicians and real
+          results.
+        </p>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 text-center">
+          {stats.map((stat, index) => (
+            <div key={index} className="flex flex-col items-center">
+              <div className="text-5xl font-bold text-emerald-300 mb-3">
+                {counts[index]}
+                {stat.suffix}
+              </div>
+              <div className="text-sm uppercase tracking-wider text-gray-400">
+                {stat.label}
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
-
-      {/* RIGHT ANIMATION */}
-      <div className="w-1/2 relative flex justify-center items-start overflow-hidden">
-
-        {/* PHONE — hide when repairman arrives */}
-        {!shardsMerged && play && (
-          <img
-            src={iphone}
-            className={`
-              w-[280px] absolute top-0 left-1/2 -translate-x-1/2
-              z-20
-              animate-phone-drop
-              transition-opacity duration-700 ease-in-out
-            `}
-          />
-        )}
-
-        {/* Glass shards — hide when repairman arrives */}
-        {!shardsMerged && shardsExploded && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30">
-            {[1, 2, 3, 4].map((i) => (
-              <span key={i} className={`glass shard${i} explode`} />
-            ))}
-          </div>
-        )}
-
-        {/* Repairman */}
-        {shardsMerged && (
-          <img
-            src={repairman}
-            className={`
-              w-[260px] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-              z-40
-              animate-repairman-enter
-            `}
-          />
-        )}
-
       </div>
     </section>
   );
