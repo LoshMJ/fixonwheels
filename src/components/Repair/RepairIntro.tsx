@@ -5,13 +5,8 @@ import RepairPhone from "../ui/Repairphone";
 
 export default function RepairIntro() {
   return (
-<section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black pb-20 snap-start">
-      {/* Background image */}
-      <img
-        src={bgIntro}
-        alt="Repair intro background"
-        className="absolute inset-0 w-full h-full object-cover opacity-90"
-      />
+    <section className="relative w-full h-screen flex items-center justify-center overflow-hidden">
+  
 
       {/* Dark gradient overlay for readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/90" />

@@ -6,6 +6,10 @@ export default {
   ],
   theme: {
     extend: {
+      perspective: {
+        1000: "1000px",
+      },
+
       keyframes: {
         phoneDrop: {
           "0%": { transform: "translateY(-600px) rotate(-15deg)" },
@@ -15,14 +19,21 @@ export default {
         },
 
         repairmanEnter: {
-    "0%": { opacity: "0", transform: "translate(-50%, -50%) scale(0) rotate(-180deg)" },
-    "100%": { opacity: "1", transform: "translate(-50%, -50%) scale(1) rotate(0deg)" }
-  }
+          "0%": {
+            opacity: "0",
+            transform: "translate(-50%, -50%) scale(0) rotate(-180deg)"
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translate(-50%, -50%) scale(1) rotate(0deg)"
+          }
+        }
       },
 
       animation: {
         "phone-drop": "phoneDrop 2.2s ease-out forwards",
-        "repairman-enter": "repairmanEnter 1.2s ease-out forwards"      }
+        "repairman-enter": "repairmanEnter 1.2s ease-out forwards"
+      }
     },
   },
   plugins: [],
