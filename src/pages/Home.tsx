@@ -1,7 +1,5 @@
-
-import Secion2 from "../components/home/Section2";
-import Hero from "../components/home/Hero";
 import Section2 from "../components/home/Section2";
+import Hero from "../components/home/Hero";
 import Howitworks from "../components/home/Howitworks";
 import Drop from "../components/home/Drop";
 

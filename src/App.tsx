@@ -7,6 +7,7 @@ import Shop from "./pages/Shop";
 import Chats from "./pages/Chats";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Cart from "./pages/Cart";
 
 export default function App() {
   const location = useLocation();
@@ -21,15 +22,9 @@ export default function App() {
           <Route path="/chats" element={<Chats />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/cart" element={<Cart />} />
         </Routes>
       </AnimatePresence>
-      <Routes>
-      = <Route path="/" element={<Home />} />
-        <Route path="/repair" element={<Repair />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/chats" element={<Chats />} />
-        <Route path="/login" element={<Login />} />
-      </Routes>
     </MainLayout>
   );
 }

@@ -9,8 +9,7 @@ export default function Shop() {
     <>
       <ShopHero />
       <Shopsec2 />
-            <PopularItems />
-
+      <PopularItems />
       <Shopsec4 />
       <Products />
     </>

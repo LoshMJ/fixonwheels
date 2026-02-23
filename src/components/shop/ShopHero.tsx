@@ -2,14 +2,14 @@ import { useState } from "react";
 import ShopCard from "../ui/ShopCard";
 import GradientButton from "../ui/GradientButton";
 import astronaut from "../../assets/astronaut.png";
-import shopbg1 from "../../assets/shopbg8.jpeg";
+import shopbg1 from "../../assets/shop1/sh1.jpeg";
 
 const shopItems = [
   {
     id: 1,
     title: "Mobiles",
     img: "/src/assets/astronaut.png",
-    bg: "/src/assets/shopbg8.jpeg",
+    bg: "/src/assets/shop1/sh1.jpeg",
   },
   {
     id: 2,

@@ -9,15 +9,12 @@
   box-sizing: border-box;
 }
 
-/* Body defaults */
+/* Make sure body doesn't override layout */
 body {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   color: white;
   overflow-x: hidden;
 }
-
-/* ================= FLOAT ANIMATIONS ================= */
-
 @keyframes floatSlow {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-15px); }
@@ -39,17 +36,23 @@ body {
 }
 
 @keyframes phoneDrop {
-  0% { transform: translate(-50%, -600px) rotate(-15deg); }
-  70% { transform: translate(-50%, 300px) rotate(6deg); }
-  85% { transform: translate(-50%, 260px) rotate(-4deg); }
-  100% { transform: translate(-50%, 300px) rotate(0deg); }
+  0% {
+    transform: translate(-50%, -600px) rotate(-15deg);
+  }
+  70% {
+    transform: translate(-50%, 300px) rotate(6deg);
+  }
+  85% {
+    transform: translate(-50%, 260px) rotate(-4deg);
+  }
+  100% {
+    transform: translate(-50%, 300px) rotate(0deg);
+  }
 }
 
 .phone-drop {
   animation: phoneDrop 2.2s ease-out forwards;
 }
-
-/* ================= GLASS SHARDS ================= */
 
 .glass {
   position: absolute;
@@ -60,38 +63,33 @@ body {
   opacity: 0;
 }
 
-/* Explode */
-@keyframes explode {
-  from { opacity: 1; transform: translate(0,0) rotate(0deg); }
-  to { opacity: 1; transform: translate(var(--x), var(--y)) rotate(120deg); }
-}
-
+/* Explode shards */
 .explode {
   animation: explode 1s ease-out forwards;
 }
-
+@keyframes explode {
+  from { opacity:1; transform: translate(0,0) rotate(0deg); }
+  to { opacity:1; transform: translate(var(--x), var(--y)) rotate(120deg); }
+}
 .shard1.explode { --x: -80px; --y: -60px; }
 .shard2.explode { --x: 80px; --y: -70px; }
 .shard3.explode { --x: -60px; --y: 50px; }
 .shard4.explode { --x: 60px; --y: 60px; }
 
-/* Merge */
-@keyframes merge {
-  from { transform: translate(var(--x), var(--y)) rotate(120deg); opacity: 1; }
-  to { transform: translate(0,0) rotate(0deg); opacity: 1; }
-}
-
+/* Merge shards smoothly to center — remain visible */
 .merge {
   animation: merge 1.5s ease-in-out forwards;
 }
+@keyframes merge {
+  from { transform: translate(var(--x), var(--y)) rotate(120deg); opacity:1; }
+  to { transform: translate(0,0) rotate(0deg); opacity:1; }
+}
 
-/* ================= REPAIRMAN ================= */
-
+/* Repairman entry */
 @keyframes repairmanEnter {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6) rotate(-180deg); }
   100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
 }
-
 .animate-repairman-enter {
   animation: repairmanEnter 1s ease-in-out forwards;
 
@@ -105,8 +103,6 @@ body {
   animation: float 4s ease-in-out infinite;
 }
 
-/* ================= FADE ================= */
-
 @keyframes fadeSlide {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -115,8 +111,10 @@ body {
 .animate-fadeSlide {
   animation: fadeSlide 0.6s ease-out forwards;
 }
-
-/* ================= PHONE UI ================= */
+/* Floating animation */
+.floating-phone {
+  animation: floatAnim 4s ease-in-out infinite;
+}
 
 @keyframes floatAnim {
   0% { transform: translateY(0px); }
@@ -124,9 +122,6 @@ body {
   100% { transform: translateY(0px); }
 }
 
-.floating-phone {
-  animation: floatAnim 4s ease-in-out infinite;
-}
 
 .phone-card {
   position: relative;
@@ -139,6 +134,7 @@ body {
   filter: drop-shadow(0 0 20px rgba(168,85,247,0.5));
 }
 
+/* inner gradient screen */
 .phone-screen {
   width: 100%;
   height: 100%;
@@ -159,11 +155,13 @@ body {
 
 .phone-hello {
   font-size: 1.4rem;
-  font-weight: bold;
+  color: white;
   text-align: center;
+  font-weight: bold;
+  line-height: 1.4;
 }
 
-/* Buttons */
+/* side buttons */
 .phone-btn {
   position: absolute;
   width: 3px;
@@ -188,7 +186,7 @@ body {
   height: 30px;
 }
 
-/* Notch */
+/* top notch */
 .phone-notch {
   position: absolute;
   top: 0;
@@ -229,12 +227,9 @@ body {
   width: 4px;
   height: 4px;
   background: rgba(0,0,255,0.3);
-  border-radius: 50%;
-}
+  border-radius: 50%;}
 
-/* ================= PAGE STATES ================= */
-
-.repair-grid {
+  .repair-grid {
   display: none;
 }
 
@@ -254,4 +249,127 @@ body {
 
 .animate-marquee {
   animation: marquee 25s linear infinite;
+}
+
+/*clear button*/
+.btn-clear {
+  @apply text-sm px-3 py-2 rounded-lg border hover:bg-gray-50 cursor-pointer transition;
+}
+
+/*cart corner anim*/
+.cart-anim-wrap{
+  position:absolute;
+  right:22px;
+  top:110px;
+  width:240px;
+  height:280px;
+  pointer-events:none;
+  z-index:30;
+
+   --break-x: 140px;
+  --break-y: 235px;
+}
+
+/* PHONE IMAGE drop + hide */
+.phone-img{
+  position:absolute;
+  left:92px;
+  top:-160px;
+  width:90px;      /* adjust size */
+  height:auto;
+  transform-origin:center;
+  filter: drop-shadow(0 16px 30px rgba(0,0,0,0.45));
+  animation: phoneDropHide 2.2s ease-in-out forwards;
+}
+
+@keyframes phoneDropHide{
+  0%   { transform: translateY(0) rotate(-10deg); opacity:1; }
+  55%  { transform: translateY(210px) rotate(6deg); opacity:1; }
+  70%  { transform: translateY(180px) rotate(-4deg); opacity:1; }
+  82%  { transform: translateY(210px) rotate(0deg); opacity:1; }
+  100% { transform: translateY(210px) rotate(0deg); opacity:0; } /* hide phone */
+}
+
+/* center crack flash (looks like glass break) */
+.crack-flash{
+  position:absolute;
+  left:140px;
+  top:230px;
+  width:12px;
+  height:12px;
+  border-radius:999px;
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 0 22px rgba(255,255,255,0.65);
+  transform: translate(-50%,-50%) scale(0);
+  opacity:0;
+  animation: crackPulse 2.2s ease-in-out forwards;
+  animation-delay:0.92s;
+}
+
+@keyframes crackPulse{
+  0%   { transform: translate(-50%,-50%) scale(0); opacity:0; }
+  10%  { transform: translate(-50%,-50%) scale(1); opacity:1; }
+  35%  { transform: translate(-50%,-50%) scale(7); opacity:0.15; }
+  100% { transform: translate(-50%,-50%) scale(7); opacity:0; }
+}
+
+/* SHARDS burst from the center then hide */
+.splash{
+  position:absolute;
+  left:0;
+  right:0;
+  top:210px;
+  height:90px;
+  opacity:0;
+  animation: splashShowHide 2.2s ease-in-out forwards;
+  animation-delay:0.92s;
+}
+
+@keyframes splashShowHide{
+  0%   { opacity:0; transform:scale(0.6); }
+  10%  { opacity:1; transform:scale(1); }
+  55%  { opacity:1; }
+  100% { opacity:0; transform:scale(1.2); }
+}
+
+.shard{
+  position:absolute;
+  left:140px;  /* burst origin */
+  top:36px;
+  width:22px;
+  height:10px;
+  background: rgba(255,255,255,0.8);
+  border-radius:2px;
+  filter: drop-shadow(0 10px 12px rgba(0,0,0,0.35));
+}
+
+.s1{ animation: shardBurst1 1.1s ease-out forwards; }
+.s2{ animation: shardBurst2 1.1s ease-out forwards; }
+.s3{ animation: shardBurst3 1.1s ease-out forwards; }
+.s4{ animation: shardBurst4 1.1s ease-out forwards; }
+
+@keyframes shardBurst1{ to{ transform: translate(-46px,-26px) rotate(85deg);} }
+@keyframes shardBurst2{ to{ transform: translate(46px,-22px) rotate(-70deg);} }
+@keyframes shardBurst3{ to{ transform: translate(-50px,18px) rotate(-110deg);} }
+@keyframes shardBurst4{ to{ transform: translate(54px,14px) rotate(120deg);} }
+
+/* REPAIRMAN image rise + rotate from crack */
+.repairman-img{
+  position:absolute;
+  left:140px;
+  top:235px;
+  width:100px;     /* adjust size */
+  height:auto;
+  transform-origin:center;
+  opacity:0;
+  filter: drop-shadow(0 16px 26px rgba(0,0,0,0.45));
+  animation: manRiseFromCrack 2.2s ease-in-out forwards;
+  animation-delay:1.25s;
+}
+
+@keyframes manRiseFromCrack{
+  0%   { opacity:0; transform: translate(-50%, 28px) rotate(-55deg) scale(0.9); }
+  35%  { opacity:1; transform: translate(-50%, 0) rotate(12deg) scale(1); }
+  60%  { opacity:1; transform: translate(-50%, -8px) rotate(-8deg) scale(1); }
+  100% { opacity:1; transform: translate(-50%, 0) rotate(0deg) scale(1); }
 }
