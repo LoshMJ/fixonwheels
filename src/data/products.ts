@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import { publicApi } from "../lib/api";
+
 export interface Product {
   id: string;
   title: string;
