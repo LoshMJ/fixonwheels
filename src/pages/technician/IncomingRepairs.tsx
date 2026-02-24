@@ -1,182 +1,172 @@
-import React, { useState } from "react";
-import {
-  getRepairWorkflow,
-  type WorkflowStep,
-} from "../../components/Repair/repairWorkflows";
+// src/pages/technician/IncomingRepairs.tsx
 
-/* ---------------- Types ---------------- */
+import { useEffect, useState } from "react";
+import { getSession } from "../../utils/auth"; // adjust path if needed
 
-type IncomingRepair = {
-  id: string;
-  customerName: string;
-  model: string;
-  issueLabel: string;
-  distanceKm: number;
-  requestedAt: string;
+type Repair = {
+  _id: string;
+  deviceModel: string;
+  issue: string;
+  description?: string;
+  address: string;
+  status: string;
+  createdAt: string;
+  customer?: {
+    name: string;
+    email: string;
+  };
 };
 
-/* ---------------- Mock DB Data ---------------- */
+export default function IncomingRepairs() {
+  const [repairs, setRepairs] = useState<Repair[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-const mockIncomingRepairs: IncomingRepair[] = [
-  {
-    id: "r1",
-    customerName: "Alex Fernando",
-    model: "iPhone 13 Pro",
-    issueLabel: "Cracked screen",
-    distanceKm: 3.2,
-    requestedAt: "5 mins ago",
-  },
-  {
-    id: "r2",
-    customerName: "Nimal Perera",
-    model: "Galaxy S22",
-    issueLabel: "Battery issue",
-    distanceKm: 5.8,
-    requestedAt: "12 mins ago",
-  },
-];
+  const session = getSession();
 
-/* ---------------- Page ---------------- */
+  useEffect(() => {
+    if (session?.token) {
+      fetchRepairs();
+    } else {
+      setError("Please login to view incoming repairs");
+      setLoading(false);
+    }
+  }, []);
 
-const IncomingRepairs: React.FC = () => {
-  const [selectedRepair, setSelectedRepair] =
-    useState<IncomingRepair | null>(null);
+  async function fetchRepairs() {
+    setLoading(true);
+    setError(null);
 
-  const workflow = selectedRepair
-    ? getRepairWorkflow(
-        selectedRepair.model,
-        selectedRepair.issueLabel
-      )
-    : null;
+    try {
+      const res = await fetch("http://localhost:5000/api/repairs/incoming", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || `Failed to fetch (HTTP ${res.status})`);
+      }
+
+      const data = await res.json();
+      console.log("Incoming repairs:", data);
+      setRepairs(data);
+    } catch (err: any) {
+      console.error("Fetch failed:", err);
+      setError(err.message || "Could not load incoming repairs");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function acceptRepair(repairId: string) {
+    if (!session?.token) {
+      alert("Please login again");
+      return;
+    }
+
+    if (!confirm("Accept this repair?")) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/repairs/${repairId}/accept`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.token}`,
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || `Failed to accept (HTTP ${res.status})`);
+      }
+
+      const data = await res.json();
+      console.log("Accept success:", data);
+
+      // Remove from list + refresh
+      setRepairs((prev) => prev.filter((r) => r._id !== repairId));
+      alert("Repair accepted!");
+    } catch (err: any) {
+      console.error("Accept failed:", err);
+      alert(`Failed to accept repair: ${err.message}`);
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-slate-100 flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r p-6">
-        <h1 className="text-lg font-semibold mb-8">Technician</h1>
-        <nav className="space-y-3">
-          <NavItem label="Home" />
-          <NavItem label="Incoming Repairs" active />
-          <NavItem label="Active Repair" />
-          <NavItem label="History" />
-          <NavItem label="Profile" />
-        </nav>
-      </aside>
+    <div className="p-8 md:p-10 min-h-screen bg-gray-50">
+      <h2 className="text-3xl font-bold mb-8 text-gray-800">Incoming Repairs</h2>
 
-      {/* Main */}
-      <main className="flex-1 p-10">
-        <h2 className="text-2xl font-semibold mb-6">
-          Incoming Repairs
-        </h2>
+      {loading && (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+        </div>
+      )}
 
-        <div className="grid grid-cols-2 gap-8">
-          {/* LEFT — Incoming List */}
-          <div className="space-y-4">
-            {mockIncomingRepairs.map((repair) => (
-              <div
-                key={repair.id}
-                className="bg-white rounded-xl p-5 shadow flex justify-between"
-              >
-                <div>
-                  <h3 className="font-semibold">
-                    {repair.customerName}
-                  </h3>
-                  <p className="text-sm text-slate-600">
-                    {repair.model} · {repair.issueLabel}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {repair.distanceKm} km · {repair.requestedAt}
-                  </p>
-                </div>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+          {error}
+        </div>
+      )}
 
-                <button
-                  onClick={() => setSelectedRepair(repair)}
-                  className="self-center px-4 py-2 text-sm bg-slate-800 text-white rounded-lg"
-                >
-                  View
-                </button>
-              </div>
-            ))}
-          </div>
+      {!loading && !error && repairs.length === 0 && (
+        <div className="text-center py-12 text-gray-500 text-lg">
+          No pending repair requests at the moment.
+        </div>
+      )}
 
-          {/* RIGHT — Workflow Preview */}
-          <div className="bg-white rounded-xl p-6 shadow">
-            {!workflow && (
-              <p className="text-slate-500 text-sm">
-                Select a repair to preview workflow
-              </p>
-            )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {repairs.map((repair) => (
+          <div
+            key={repair._id}
+            className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-200"
+          >
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                {repair.deviceModel}
+              </h3>
+              <p className="text-gray-700 font-medium mb-2">{repair.issue}</p>
 
-            {workflow && (
-              <>
-                <h3 className="font-semibold text-lg mb-1">
-                  Repair Workflow
-                </h3>
-
-                <p className="text-sm text-slate-600 mb-4">
-                  {workflow.device?.displayName} ·{" "}
-                  {workflow.issue.label}
+              {repair.description && (
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  {repair.description}
                 </p>
+              )}
 
-                <p className="text-sm font-medium mb-4">
-                  Estimated time:{" "}
-                  <span className="text-slate-800">
-                    {workflow.totalMinutes} mins
+              <div className="text-sm text-gray-500 space-y-1">
+                <p>
+                  Customer:{" "}
+                  <span className="font-medium">
+                    {repair.customer?.name || "Unknown"}
                   </span>
                 </p>
+                <p className="text-xs">
+                  {repair.customer?.email || "—"}
+                </p>
+                <p className="text-xs mt-2 text-gray-400">
+                  Requested: {new Date(repair.createdAt).toLocaleString()}
+                </p>
+              </div>
+            </div>
 
-                <ol className="space-y-3">
-                  {workflow.steps.map(
-                    (step: WorkflowStep, index: number) => (
-                      <li
-                        key={step.id}
-                        className="flex gap-3"
-                      >
-                        <span className="w-6 h-6 rounded-full bg-slate-800 text-white text-xs flex items-center justify-center">
-                          {index + 1}
-                        </span>
-                        <div>
-                          <p className="text-sm font-medium">
-                            {step.label}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            ~ {step.estMinutes} mins
-                          </p>
-                        </div>
-                      </li>
-                    )
-                  )}
-                </ol>
-
-                <button className="mt-6 w-full py-2 bg-emerald-600 text-white rounded-lg">
-                  Accept Repair
-                </button>
-              </>
-            )}
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+              <button
+                onClick={() => acceptRepair(repair._id)}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading}
+              >
+                Accept Repair
+              </button>
+            </div>
           </div>
-        </div>
-      </main>
+        ))}
+      </div>
     </div>
   );
-};
-
-/* ---------------- Components ---------------- */
-
-type NavItemProps = {
-  label: string;
-  active?: boolean;
-};
-
-const NavItem: React.FC<NavItemProps> = ({ label, active }) => (
-  <div
-    className={`px-4 py-2 rounded-lg text-sm ${
-      active
-        ? "bg-slate-800 text-white"
-        : "text-slate-600 hover:bg-slate-200"
-    }`}
-  >
-    {label}
-  </div>
-);
-
-export default IncomingRepairs;
+}

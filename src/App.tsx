@@ -30,19 +30,9 @@ export default function App() {
         </Route>
 
         {/* Technician Portal (separate layout later) */}
-<Route
-  element={<ProtectedRoute allowedRoles={["technician"]} />}
->
-  <Route
-    path="/technician"
-    element={<TechnicianDashboard />}
-  />
-</Route>
-<Route
-  element={<ProtectedRoute allowedRoles={["technician"]} />}
->
+<Route element={<ProtectedRoute allowedRoles={["technician"]} />}>
   <Route element={<TechnicianLayout />}>
-    <Route path="/technician" element={<div>Tech Home</div>} />
+    <Route path="/technician" element={<TechnicianDashboard />} />
     <Route path="/technician/incoming" element={<IncomingRepairs />} />
     <Route path="/technician/active" element={<ActiveRepair />} />
   </Route>

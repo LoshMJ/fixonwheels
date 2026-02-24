@@ -1,180 +1,198 @@
-import React, { useState } from "react";
+// src/pages/technician/ActiveRepairs.tsx
 
-type RepairStep = {
-  id: string;
-  label: string;
-  estMinutes: number;
+import { useEffect, useState } from "react";
+import { getSession } from "../../utils/auth"; // adjust path if needed
+
+type Repair = {
+  _id: string;
+  deviceModel: string;
+  issue: string;
+  status: string;
+  createdAt: string;
 };
 
-const mockRepair = {
-  customerName: "John Silva",
-  device: "iPhone 14 Pro",
-  issue: "Cracked screen",
-  totalMinutes: 75,
-  steps: [
-    { id: "checkin", label: "Check-in & visual inspection", estMinutes: 5 },
-    { id: "poweroff", label: "Power down device", estMinutes: 5 },
-    { id: "open", label: "Open device & remove screen", estMinutes: 15 },
-    { id: "replace", label: "Install new display", estMinutes: 20 },
-    { id: "qc", label: "Final quality checks", estMinutes: 10 },
-  ] as RepairStep[],
-};
+export default function ActiveRepairs() {
+  const [repairs, setRepairs] = useState<Repair[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-const ActiveRepair: React.FC = () => {
-  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
+  const session = getSession();
 
-  const toggleStep = (id: string) => {
-    setCompletedSteps((prev) =>
-      prev.includes(id)
-        ? prev.filter((s) => s !== id)
-        : [...prev, id]
-    );
-  };
+  useEffect(() => {
+    if (session?.token) {
+      fetchActiveRepairs();
+    } else {
+      setError("Please login to view active repairs");
+      setLoading(false);
+    }
+  }, []);
 
-  const progress =
-    (completedSteps.length / mockRepair.steps.length) * 100;
+  async function fetchActiveRepairs() {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("http://localhost:5000/api/repairs/active", {
+        headers: {
+          Authorization: `Bearer ${session?.token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      console.log("Active repairs loaded:", data);
+      setRepairs(data);
+    } catch (err: any) {
+      console.error("Fetch active repairs failed:", err);
+      setError(err.message || "Failed to load active repairs");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function startRepair(repairId: string) {
+    if (!session?.token) {
+      alert("Session expired. Please login again.");
+      return;
+    }
+
+    if (!confirm("Start this repair?")) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/repairs/${repairId}/start`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.token}`,
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || `HTTP ${res.status}`);
+      }
+
+      console.log("Repair started");
+      fetchActiveRepairs(); // refresh list
+      alert("Repair started!");
+    } catch (err: any) {
+      console.error("Start failed:", err);
+      alert(`Failed to start repair: ${err.message}`);
+    }
+  }
+
+  async function completeRepair(repairId: string) {
+    if (!session?.token) {
+      alert("Session expired. Please login again.");
+      return;
+    }
+
+    if (!confirm("Complete this repair?")) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/repairs/${repairId}/complete`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.token}`,
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || `HTTP ${res.status}`);
+      }
+
+      console.log("Repair completed");
+      fetchActiveRepairs(); // refresh list
+      alert("Repair completed!");
+    } catch (err: any) {
+      console.error("Complete failed:", err);
+      alert(`Failed to complete repair: ${err.message}`);
+    }
+  }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-slate-100 to-slate-200 flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white/40 backdrop-blur-xl border-r border-white/30 p-6">
-        <div className="mb-10">
-          <h1 className="text-xl font-semibold text-slate-800">
-            Repair<span className="text-slate-500">Hub</span>
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Technician Portal
-          </p>
+    <div className="p-6 md:p-10 min-h-screen bg-gray-50">
+      <h2 className="text-3xl font-bold mb-8 text-gray-800">Active Repairs</h2>
+
+      {loading && (
+        <div className="flex justify-center items-center h-40">
+          <p className="text-gray-600 animate-pulse text-lg">Loading active jobs...</p>
         </div>
+      )}
 
-        <nav className="space-y-4">
-          <NavItem label="Home" />
-          <NavItem label="Incoming Repairs" />
-          <NavItem label="Active Repair" active />
-          <NavItem label="History" />
-          <NavItem label="Profile" />
-        </nav>
-      </aside>
-
-      {/* Main */}
-      <main className="flex-1 p-10">
-        {/* Header */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-semibold text-slate-800">
-            Active Repair
-          </h2>
-          <p className="text-slate-500 text-sm">
-            Update repair progress in real time
-          </p>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+          {error}
         </div>
+      )}
 
-        {/* Repair summary card */}
-        <div className="bg-white/60 backdrop-blur-xl border border-white/40 rounded-xl p-6 shadow-md max-w-4xl mb-8">
-          <h3 className="text-lg font-semibold text-slate-800">
-            {mockRepair.customerName}
-          </h3>
-          <p className="text-sm text-slate-600">
-            {mockRepair.device} · {mockRepair.issue}
-          </p>
+      {!loading && repairs.length === 0 && (
+        <div className="text-center text-gray-500 text-lg py-10">
+          No active repairs at the moment.
+        </div>
+      )}
 
-          <div className="mt-4">
-            <div className="flex justify-between text-xs text-slate-500 mb-1">
-              <span>Progress</span>
-              <span>{Math.round(progress)}%</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {repairs.map((repair) => (
+          <div
+            key={repair._id}
+            className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-200"
+          >
+            <div className="p-6">
+              <h3 className="font-bold text-xl text-gray-900 mb-2">
+                {repair.deviceModel}
+              </h3>
+              <p className="text-gray-700 font-medium mb-3">{repair.issue}</p>
+              <p className="text-sm text-gray-500">
+                Status: <span className="font-semibold capitalize">{repair.status}</span>
+              </p>
+              <p className="text-xs text-gray-400 mt-2">
+                Started: {new Date(repair.createdAt).toLocaleString()}
+              </p>
             </div>
-            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-slate-800 transition-all"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
 
-          <p className="text-xs text-slate-500 mt-3">
-            Estimated total time: {mockRepair.totalMinutes} minutes
-          </p>
-        </div>
-
-        {/* Steps */}
-        <div className="bg-white/60 backdrop-blur-xl border border-white/40 rounded-xl p-6 shadow-md max-w-4xl">
-          <h4 className="font-semibold text-slate-800 mb-4">
-            Repair Steps
-          </h4>
-
-          <div className="space-y-4">
-            {mockRepair.steps.map((step, index) => {
-              const done = completedSteps.includes(step.id);
-
-              return (
-                <div
-                  key={step.id}
-                  className="flex items-center justify-between"
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+              {repair.status === "accepted" && (
+                <button
+                  onClick={() => startRepair(repair._id)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-lg transition disabled:opacity-50"
+                  disabled={loading}
                 >
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => toggleStep(step.id)}
-                      className={`w-8 h-8 rounded-full border flex items-center justify-center text-sm
-                        ${
-                          done
-                            ? "bg-slate-800 text-white border-slate-800"
-                            : "border-slate-300 text-slate-500"
-                        }`}
-                    >
-                      {index + 1}
-                    </button>
+                  Start Repair
+                </button>
+              )}
 
-                    <div>
-                      <p
-                        className={`text-sm font-medium
-                          ${
-                            done
-                              ? "text-slate-800 line-through"
-                              : "text-slate-700"
-                          }`}
-                      >
-                        {step.label}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        ~ {step.estMinutes} mins
-                      </p>
-                    </div>
-                  </div>
+              {repair.status === "in_progress" && (
+                <button
+                  onClick={() => completeRepair(repair._id)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-5 rounded-lg transition disabled:opacity-50"
+                  disabled={loading}
+                >
+                  Complete Repair
+                </button>
+              )}
 
-                  {done && (
-                    <span className="text-xs text-emerald-600 font-medium">
-                      Completed
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+              {repair.status === "completed" && (
+                <span className="text-emerald-600 font-medium py-2 px-5">
+                  Completed
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      </main>
+        ))}
+      </div>
     </div>
   );
-};
-
-/* ---------------- Components ---------------- */
-
-type NavItemProps = {
-  label: string;
-  active?: boolean;
-};
-
-const NavItem: React.FC<NavItemProps> = ({ label, active }) => {
-  return (
-    <button
-      className={`w-full text-left px-4 py-2 rounded-lg text-sm transition
-        ${
-          active
-            ? "bg-white text-slate-800 shadow-sm"
-            : "text-slate-600 hover:bg-white/60 hover:text-slate-800"
-        }`}
-    >
-      {label}
-    </button>
-  );
-};
-
-export default ActiveRepair;
+}
