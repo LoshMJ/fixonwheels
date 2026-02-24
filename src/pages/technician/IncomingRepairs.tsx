@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import {
   getRepairWorkflow,
   type WorkflowStep,
-} from "../Repair/repairWorkflows";
+} from "../../components/Repair/repairWorkflows";
 
 /* ---------------- Types ---------------- */
 
