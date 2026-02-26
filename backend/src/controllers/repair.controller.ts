@@ -53,7 +53,6 @@ export const createRepair = async (req: AuthenticatedRequest, res: Response) => 
       description,
       address,
       status: "pending",
-      // stepsProgress: buildStepsFromWorkflow(issueId, platform), // ← removed, using WORKFLOWS later
     });
 
     const availableTechs = await User.find({
@@ -107,7 +106,7 @@ export const acceptRepair = async (req: AuthenticatedRequest, res: Response) => 
       return res.status(400).json({ message: "Repair already taken" });
     }
 
-repair.technician = new mongoose.Types.ObjectId(technicianId);
+    repair.technician = new mongoose.Types.ObjectId(technicianId);
     repair.status = "accepted";
     await repair.save();
 

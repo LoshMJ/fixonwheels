@@ -125,79 +125,91 @@ export default function ActiveRepairs() {
   }
 
   return (
-    <div className="p-6 md:p-10 min-h-screen bg-gray-50">
-      <h2 className="text-3xl font-bold mb-8 text-gray-800">Active Repairs</h2>
+  <div className="p-8 md:p-10">
 
-      {loading && (
-        <div className="flex justify-center items-center h-40">
-          <p className="text-gray-600 animate-pulse text-lg">Loading active jobs...</p>
-        </div>
-      )}
+    <h2 className="text-3xl font-bold mb-8">
+      Active <span className="text-rose-300">Repairs</span>
+    </h2>
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-          {error}
-        </div>
-      )}
-
-      {!loading && repairs.length === 0 && (
-        <div className="text-center text-gray-500 text-lg py-10">
-          No active repairs at the moment.
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {repairs.map((repair) => (
-          <div
-            key={repair._id}
-            className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-200"
-          >
-            <div className="p-6">
-              <h3 className="font-bold text-xl text-gray-900 mb-2">
-                {repair.deviceModel}
-              </h3>
-              <p className="text-gray-700 font-medium mb-3">{repair.issue}</p>
-              <p className="text-sm text-gray-500">
-                Status: <span className="font-semibold capitalize">{repair.status}</span>
-              </p>
-              <p className="text-xs text-gray-400 mt-2">
-                Started: {new Date(repair.createdAt).toLocaleString()}
-              </p>
-            </div>
-
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
-              {repair.status === "accepted" && (
-                <button
-                  onClick={async () => {
-                    await startRepair(repair._id);
-                    navigate(`/technician/workspace/${repair._id}`); // ← STEP 3: fixed to use navigate
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-lg transition disabled:opacity-50"
-                  disabled={loading}
-                >
-                  Start Repair
-                </button>
-              )}
-
-              {repair.status === "in_progress" && (
-                <button
-                  onClick={() => completeRepair(repair._id)}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-5 rounded-lg transition disabled:opacity-50"
-                  disabled={loading}
-                >
-                  Complete Repair
-                </button>
-              )}
-
-              {repair.status === "completed" && (
-                <span className="text-emerald-600 font-medium py-2 px-5">
-                  Completed
-                </span>
-              )}
-            </div>
-          </div>
-        ))}
+    {loading && (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-400"></div>
       </div>
+    )}
+
+    {error && (
+      <div className="bg-red-500/20 border border-red-400/40 text-red-300 px-4 py-3 rounded-xl mb-6 backdrop-blur-sm">
+        {error}
+      </div>
+    )}
+
+    {!loading && repairs.length === 0 && (
+      <div className="text-center text-gray-400 text-lg py-10">
+        No active repairs at the moment.
+      </div>
+    )}
+
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {repairs.map((repair) => (
+        <div
+          key={repair._id}
+          className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:shadow-[0_0_40px_rgba(255,140,105,0.25)] transition-all duration-300"
+        >
+          <h3 className="font-semibold text-xl mb-2">
+            {repair.deviceModel}
+          </h3>
+
+          <p className="text-gray-300 mb-3">
+            {repair.issue}
+          </p>
+
+          <p className="text-sm text-gray-400">
+            Status:{" "}
+            <span className="capitalize text-rose-300 font-medium">
+              {repair.status}
+            </span>
+          </p>
+
+          <p className="text-xs text-gray-500 mt-2">
+            Started: {new Date(repair.createdAt).toLocaleString()}
+          </p>
+
+          <div className="mt-6 flex justify-end space-x-3">
+
+            {repair.status === "accepted" && (
+              <button
+                onClick={async () => {
+                  await startRepair(repair._id);
+                  navigate(`/technician/workspace/${repair._id}`);
+                }}
+                className="bg-gradient-to-r from-rose-400 to-orange-300 text-black font-medium py-2 px-5 rounded-xl hover:scale-[1.03] transition disabled:opacity-50"
+                disabled={loading}
+              >
+                Start Repair
+              </button>
+            )}
+
+            {repair.status === "in_progress" && (
+              <button
+                onClick={() => completeRepair(repair._id)}
+                className="bg-gradient-to-r from-emerald-400 to-green-300 text-black font-medium py-2 px-5 rounded-xl hover:scale-[1.03] transition disabled:opacity-50"
+                disabled={loading}
+              >
+                Complete Repair
+              </button>
+            )}
+
+            {repair.status === "completed" && (
+              <span className="text-emerald-400 font-medium py-2 px-5">
+                Completed
+              </span>
+            )}
+
+          </div>
+        </div>
+      ))}
     </div>
-  );
+
+  </div>
+);
 }

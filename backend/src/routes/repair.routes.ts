@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
 import multer from "multer";
-
+import { AuthRequest } from "../types/AuthRequest";
+import { Order } from "../models/Order";
+import { Repair } from "../models/Repair";
 import {
   createRepair,
   acceptRepair,
@@ -70,7 +72,6 @@ router.patch("/profile", requireAuth, requireTechnician, updateTechnicianProfile
 router.post(
   "/profile/upload",
   requireAuth,
-  requireTechnician,
   upload.single("image"),
   async (req: Request & { user?: any; file?: any }, res: Response) => {
     try {
@@ -142,5 +143,49 @@ router.patch("/:id/rate", requireAuth, requireCustomer, submitRating);
 ===================================== */
 
 router.get("/:id", requireAuth, getRepairById);
+
+
+
+// GET customer profile
+router.get("/customer/profile", requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const user = await User.findById(req.user!.userId).select("-password");
+
+    const repairs = await Repair.find({ customer: req.user!.userId });
+
+    const purchases = await Order.find({ user: req.user!.userId });
+
+    res.json({ user, repairs, purchases });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load profile" });
+  }
+});
+
+// UPDATE customer profile
+router.patch("/customer/profile", requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    const updateData: any = { name, email };
+
+    if (password && password.length > 3) {
+      updateData.password = password; // make sure hashing happens in your model pre-save
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user!.userId,
+      updateData,
+      { new: true }
+    ).select("-password");
+
+    res.json({
+      user: updatedUser,
+      repairs: await Repair.find({ customer: req.user!.userId }),
+      purchases: await Order.find({ user: req.user!.userId }),
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Profile update failed" });
+  }
+});
 
 export default router;

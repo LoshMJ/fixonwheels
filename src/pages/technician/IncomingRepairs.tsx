@@ -99,74 +99,75 @@ export default function IncomingRepairs() {
     }
   }
 
-  return (
-    <div className="p-8 md:p-10 min-h-screen bg-gray-50">
-      <h2 className="text-3xl font-bold mb-8 text-gray-800">Incoming Repairs</h2>
+ return (
+  <div className="p-8 md:p-10">
 
-      {loading && (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
-        </div>
-      )}
+    <h2 className="text-3xl font-bold mb-8">
+      Incoming <span className="text-rose-300">Repairs</span>
+    </h2>
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-          {error}
-        </div>
-      )}
-
-      {!loading && !error && repairs.length === 0 && (
-        <div className="text-center py-12 text-gray-500 text-lg">
-          No pending repair requests at the moment.
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {repairs.map((repair) => (
-          <div
-            key={repair._id}
-            className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-200"
-          >
-            <div className="p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {repair.deviceModel}
-              </h3>
-              <p className="text-gray-700 font-medium mb-2">{repair.issue}</p>
-
-              {repair.description && (
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  {repair.description}
-                </p>
-              )}
-
-              <div className="text-sm text-gray-500 space-y-1">
-                <p>
-                  Customer:{" "}
-                  <span className="font-medium">
-                    {repair.customer?.name || "Unknown"}
-                  </span>
-                </p>
-                <p className="text-xs">
-                  {repair.customer?.email || "—"}
-                </p>
-                <p className="text-xs mt-2 text-gray-400">
-                  Requested: {new Date(repair.createdAt).toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-              <button
-                onClick={() => acceptRepair(repair._id)}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={loading}
-              >
-                Accept Repair
-              </button>
-            </div>
-          </div>
-        ))}
+    {loading && (
+      <div className="flex justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-400"></div>
       </div>
+    )}
+
+    {error && (
+      <div className="bg-red-500/20 border border-red-400/40 text-red-300 px-4 py-3 rounded-xl mb-6 backdrop-blur-sm">
+        {error}
+      </div>
+    )}
+
+    {!loading && !error && repairs.length === 0 && (
+      <div className="text-center py-12 text-gray-400 text-lg">
+        No pending repair requests at the moment.
+      </div>
+    )}
+
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {repairs.map((repair) => (
+        <div
+          key={repair._id}
+          className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:shadow-[0_0_40px_rgba(255,140,105,0.25)] transition"
+        >
+          <h3 className="text-xl font-semibold mb-2">
+            {repair.deviceModel}
+          </h3>
+
+          <p className="text-gray-300 mb-3">{repair.issue}</p>
+
+          {repair.description && (
+            <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+              {repair.description}
+            </p>
+          )}
+
+          <div className="text-sm text-gray-400 space-y-1 mb-4">
+            <p>
+              Customer:{" "}
+              <span className="text-white">
+                {repair.customer?.name || "Unknown"}
+              </span>
+            </p>
+            <p className="text-xs">
+              {repair.customer?.email || "—"}
+            </p>
+            <p className="text-xs opacity-70">
+              {new Date(repair.createdAt).toLocaleString()}
+            </p>
+          </div>
+
+          <button
+            onClick={() => acceptRepair(repair._id)}
+            className="w-full bg-gradient-to-r from-rose-400 to-orange-300 text-black font-medium py-3 rounded-xl hover:scale-[1.02] transition disabled:opacity-50"
+            disabled={loading}
+          >
+            Accept Repair
+          </button>
+        </div>
+      ))}
     </div>
-  );
+
+  </div>
+);
 }
