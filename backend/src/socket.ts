@@ -1,30 +1,34 @@
-// backend/src/socket.ts  (new file for Socket.io setup)
-import { Server, Socket } from 'socket.io';
+import { Server, Socket } from "socket.io";
 
 let io: Server | null = null;
 
-export const setIO = (socketIO: Server) => {
-  io = socketIO;
+export const setIO = (serverIO: Server) => {
+  io = serverIO;
 };
 
-export const getIO = () => {
+export const getIO = (): Server => {
   if (!io) {
-    throw new Error('Socket.io not initialized');
+    throw new Error("Socket.io not initialized");
   }
   return io;
 };
 
-export const setupSocket = (io: Server) => {
-  io.on('connection', (socket: Socket) => {
-    console.log('New client connected:', socket.id);
+export const setupSocket = (serverIO: Server) => {
+  serverIO.on("connection", (socket: Socket) => {
+    console.log("Socket connected:", socket.id);
 
-    socket.on('join', (userId: string) => {
+    // User room (customer / technician)
+    socket.on("join", (userId: string) => {
       socket.join(userId);
-      console.log(`User ${userId} joined room`);
     });
 
-    socket.on('disconnect', () => {
-      console.log('Client disconnected:', socket.id);
+    // Repair room (live workspace sync)
+    socket.on("join_repair", (repairId: string) => {
+      socket.join(repairId);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected:", socket.id);
     });
   });
 };

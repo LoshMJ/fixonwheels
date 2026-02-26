@@ -1,6 +1,7 @@
 // src/pages/technician/ActiveRepairs.tsx
 
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // ← STEP 1: added this import
 import { getSession } from "../../utils/auth"; // adjust path if needed
 
 type Repair = {
@@ -17,6 +18,7 @@ export default function ActiveRepairs() {
   const [error, setError] = useState<string | null>(null);
 
   const session = getSession();
+  const navigate = useNavigate(); // ← STEP 2: added navigate instance
 
   useEffect(() => {
     if (session?.token) {
@@ -166,7 +168,10 @@ export default function ActiveRepairs() {
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
               {repair.status === "accepted" && (
                 <button
-                  onClick={() => startRepair(repair._id)}
+                  onClick={async () => {
+                    await startRepair(repair._id);
+                    navigate(`/technician/workspace/${repair._id}`); // ← STEP 3: fixed to use navigate
+                  }}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-lg transition disabled:opacity-50"
                   disabled={loading}
                 >

@@ -1,12 +1,26 @@
-// backend/src/models/Repair.ts
-import mongoose, { Schema, Document, Model, Types } from 'mongoose';
+import mongoose, { Schema, Document, Model, Types } from "mongoose";
+
+/* ==============================
+   STATUS FLOW
+============================== */
 
 export type RepairStatus =
   | "pending"
   | "accepted"
   | "in_progress"
-  | "completed"
+  | "awaiting_payment"
+  | "paid"
+  | "completed";
+
+export type PaymentMethod = "card" | "paypal" | "cod";
+
+export type PaymentStatus =
+  | "pending"
+  | "awaiting_payment"
   | "paid";
+/* ==============================
+   STEP PROGRESS
+============================== */
 
 export interface IStepProgress {
   stepId: string;
@@ -17,6 +31,10 @@ export interface IStepProgress {
   photoUrl?: string;
 }
 
+/* ==============================
+   MAIN REPAIR INTERFACE
+============================== */
+
 export interface IRepair extends Document {
   customer: Types.ObjectId;
   technician?: Types.ObjectId;
@@ -25,15 +43,26 @@ export interface IRepair extends Document {
   description?: string;
   address: string;
   status: RepairStatus;
+  rating?: number;
+  ratingNote?: string;
 
-  // Added missing fields
   customerConfirmedHandover: boolean;
   technicianConfirmedHandover: boolean;
   stepsProgress: IStepProgress[];
 
+  // 🔥 ADD THESE EXACTLY HERE
+  paymentMethod?: "card" | "paypal" | "cod";
+  paymentStatus?: "pending" | "awaiting_payment" | "paid";
+  paidAt?: Date;
+  amount?: number;
+
   createdAt: Date;
   updatedAt: Date;
 }
+
+/* ==============================
+   STEP SCHEMA
+============================== */
 
 const stepProgressSchema = new Schema<IStepProgress>({
   stepId: { type: String, required: true },
@@ -44,37 +73,77 @@ const stepProgressSchema = new Schema<IStepProgress>({
   photoUrl: String,
 });
 
+/* ==============================
+   REPAIR SCHEMA
+============================== */
+
 const repairSchema = new Schema<IRepair>(
   {
     customer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
+
     technician: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       default: null,
     },
+
     deviceModel: { type: String, required: true },
     issue: { type: String, required: true },
     description: String,
     address: String,
+
     status: {
       type: String,
-      enum: ["pending", "accepted", "in_progress", "completed", "paid"],
+      enum: [
+        "pending",
+        "accepted",
+        "in_progress",
+        "awaiting_payment",
+        "paid",
+        "completed",
+      ],
       default: "pending",
     },
+    rating: { type: Number, default: null },
+    ratingNote: { type: String, default: "" },
 
-    // FIX: Add these fields
     customerConfirmedHandover: { type: Boolean, default: false },
     technicianConfirmedHandover: { type: Boolean, default: false },
+
     stepsProgress: {
       type: [stepProgressSchema],
       default: [],
+    },
+
+    /* ==============================
+       🔥 PAYMENT FIELDS
+    ============================== */
+
+    paymentMethod: {
+      type: String,
+      enum: ["card", "paypal", "cod"],
+      default: null,
+    },
+
+paymentStatus: {
+  type: String,
+  enum: ["pending", "awaiting_payment", "paid"],
+  default: "pending",
+},
+    paidAt: { type: Date },
+    amount: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }
 );
 
-export const Repair: Model<IRepair> = mongoose.model<IRepair>('Repair', repairSchema);
+export const Repair: Model<IRepair> = mongoose.model<IRepair>(
+  "Repair",
+  repairSchema
+);

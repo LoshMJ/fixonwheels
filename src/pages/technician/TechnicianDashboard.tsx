@@ -1,111 +1,99 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const TechnicianDashboard: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-slate-100 to-slate-200 flex">
-      {/* ================= Sidebar ================= */}
-      <aside className="w-64 bg-white/40 backdrop-blur-xl border-r border-white/30 p-6">
-        {/* App / Brand */}
-        <div className="mb-10">
-          <h1 className="text-xl font-semibold text-slate-800">
-            Repair<span className="text-slate-500">Hub</span>
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Technician Portal
-          </p>
-        </div>
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-black to-gray-950 text-white p-10">
 
-        {/* Navigation */}
-        <nav className="space-y-4">
-          <NavItem label="Home" active />
-          <NavItem label="Incoming Repairs" />
-          <NavItem label="Active Repair" />
-          <NavItem label="History" />
-          <NavItem label="Profile" />
-        </nav>
-      </aside>
+      {/* ================= HEADER ================= */}
+      <div className="mb-10">
+        <h1 className="text-3xl font-bold tracking-tight">
+          Technician Control Center
+        </h1>
+        <p className="text-gray-400 mt-2 text-sm">
+          Overview of your repairs, performance & workflow
+        </p>
+      </div>
 
-      {/* ================= Main Content ================= */}
-      <main className="flex-1 p-10">
-        {/* Page title */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-slate-800">
-            Technician Dashboard
-          </h2>
-          <p className="text-slate-500 text-sm">
-            Overview of your work and performance
-          </p>
-        </div>
+      {/* ================= STATS GRID ================= */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
 
-        {/* ================= Profile Card ================= */}
-        <section className="bg-white/50 backdrop-blur-xl border border-white/40 rounded-2xl p-8 shadow-lg max-w-4xl">
-          <div className="flex items-center gap-8">
-            {/* Profile Picture */}
-            <div className="relative">
-              <img
-                src="https://i.pravatar.cc/150?img=12"
-                alt="Technician profile"
-                className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-md"
-              />
-              <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></span>
-            </div>
+        <GlassStat value="248" label="Repairs Completed" />
+        <GlassStat value="4.8 ★" label="Average Rating" />
+        <GlassStat value="5 yrs" label="Experience" />
 
-            {/* Technician Info */}
-            <div className="flex-1">
-              <h3 className="text-xl font-semibold text-slate-800">
-                Alex Johnson
-              </h3>
-              <p className="text-slate-500 text-sm">
-                Senior Mobile Repair Technician
-              </p>
+      </div>
 
-              {/* Stats */}
-              <div className="flex gap-10 mt-6">
-                <StatItem value="248" label="Repairs Completed" />
-                <StatItem value="4.8 ★" label="Average Rating" />
-                <StatItem value="5 yrs" label="Experience" />
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
+      {/* ================= NAVIGATION CARDS ================= */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+        <DashboardCard
+          title="Incoming Repairs"
+          description="View and accept new repair requests"
+          onClick={() => navigate("/technician/incoming")}
+        />
+
+        <DashboardCard
+          title="Active Repairs"
+          description="Continue working on accepted repairs"
+          onClick={() => navigate("/technician/active")}
+        />
+
+        <DashboardCard
+          title="Repair History"
+          description="Review previously completed repairs"
+          onClick={() => navigate("/technician/history")}
+        />
+
+      </div>
     </div>
   );
 };
 
-/* ================= Reusable Components ================= */
+/* ================= GLASS STAT CARD ================= */
 
-type NavItemProps = {
-  label: string;
-  active?: boolean;
-};
-
-const NavItem: React.FC<NavItemProps> = ({ label, active }) => {
-  return (
-    <button
-      className={`w-full text-left px-4 py-2 rounded-lg text-sm transition
-        ${
-          active
-            ? "bg-white text-slate-800 shadow-sm"
-            : "text-slate-600 hover:bg-white/60 hover:text-slate-800"
-        }`}
-    >
-      {label}
-    </button>
-  );
-};
-
-type StatItemProps = {
+type GlassStatProps = {
   value: string;
   label: string;
 };
 
-const StatItem: React.FC<StatItemProps> = ({ value, label }) => {
+const GlassStat: React.FC<GlassStatProps> = ({ value, label }) => {
   return (
-    <div>
-      <p className="text-lg font-semibold text-slate-800">{value}</p>
-      <p className="text-xs text-slate-500">{label}</p>
-    </div>
+    <motion.div
+      whileHover={{ scale: 1.03 }}
+      className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl p-8 shadow-[0_40px_120px_rgba(0,0,0,0.6)]"
+    >
+      <p className="text-2xl font-semibold">{value}</p>
+      <p className="text-sm text-gray-400 mt-2">{label}</p>
+    </motion.div>
+  );
+};
+
+/* ================= DASHBOARD NAV CARD ================= */
+
+type DashboardCardProps = {
+  title: string;
+  description: string;
+  onClick: () => void;
+};
+
+const DashboardCard: React.FC<DashboardCardProps> = ({
+  title,
+  description,
+  onClick,
+}) => {
+  return (
+    <motion.div
+      whileHover={{ scale: 1.04 }}
+      onClick={onClick}
+      className="cursor-pointer bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-[0_40px_120px_rgba(0,0,0,0.6)] transition"
+    >
+      <h3 className="text-xl font-semibold mb-4">{title}</h3>
+      <p className="text-gray-400 text-sm">{description}</p>
+    </motion.div>
   );
 };
 

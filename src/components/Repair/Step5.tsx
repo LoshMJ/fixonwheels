@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import SpinningCard from "../ui/Card";
 import { findDeviceByModel, findIssueByLabel } from "./repairWorkflows";
+import { getSession } from "../../lib/auth"; // ← STEP 3: added import
 
 type PaymentMethod = "card" | "cash" | "paypal";
 type PaymentStatus = "idle" | "processing" | "success";
@@ -10,12 +11,14 @@ interface Step5Props {
   selectedModel: string | null;
   selectedIssue: string | null;
   pricing: { repair: number; travel: number; total: number } | null;
+  repairId: string | null; // ← STEP 1: added repairId prop
 }
 
 export default function Step5({
   selectedModel,
   selectedIssue,
   pricing,
+  repairId,
 }: Step5Props) {
   const [method, setMethod] = useState<PaymentMethod>("card");
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("idle");
@@ -59,17 +62,55 @@ export default function Step5({
       ? !!cardName && !!cardNumber && !!cardExpiry && !!cardCvc
       : !!paypalEmail;
 
-  const handlePay = () => {
-    if (!canSubmit || paymentStatus === "processing") return;
 
+
+  // 🔥 STEP 4 — Real backend payment call
+const handlePay = async () => {
+  if (!canSubmit || paymentStatus === "processing") return;
+
+  const session = getSession();
+  if (!session?.token || !repairId) {
+    alert("Missing session or repair ID. Please try again.");
+    return;
+  }
+
+  try {
     setPaymentStatus("processing");
 
-    // fake async "real" payment
-    setTimeout(() => {
-      setPaymentStatus("success");
-      setLoyaltyPoints(computedPoints);
-    }, 900);
-  };
+    const backendMethod = method === "cash" ? "cod" : method;
+
+    const res = await fetch(
+      `http://localhost:5000/api/repairs/${repairId}/pay`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.token}`,
+        },
+        body: JSON.stringify({
+          method: backendMethod,
+          amount: total,   // 🔥 THIS WAS MISSING
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "Payment failed");
+    }
+
+await res.json();
+    setPaymentStatus("success");
+    setLoyaltyPoints(computedPoints);
+
+    alert("Payment processed successfully!");
+
+  } catch (err: any) {
+    console.error("Payment error:", err);
+    alert(err.message || "Payment failed. Please try again.");
+    setPaymentStatus("idle");
+  }
+};
 
   const renderMethodFields = () => {
     if (method === "cash") {
@@ -386,12 +427,41 @@ export default function Step5({
             placeholder="Anything you loved or anything we should improve?"
           />
 
-          <button
-            type="button"
-            className="self-start mt-1 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white font-semibold transition"
-          >
-            Save feedback
-          </button>
+<button
+  type="button"
+  onClick={async () => {
+    if (!repairId) return;
+    const session = getSession();
+    if (!session?.token) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/repairs/${repairId}/rate`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.token}`,
+          },
+          body: JSON.stringify({
+            rating,
+            note: ratingNote,
+          }),
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to save rating");
+
+      alert("Rating saved successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save rating");
+    }
+  }}
+  className="self-start mt-1 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white font-semibold transition"
+>
+  Save feedback
+</button>
 
           {paymentStatus === "success" && (
             <p className="text-[11px] text-emerald-200/90 mt-1">

@@ -1,18 +1,18 @@
 // src/components/repair/RepairLayout.tsx
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import io, { Socket } from "socket.io-client";
+import io from "socket.io-client";
 import { computePricing } from "./repairUtils";
 import { getRepairWorkflow } from "./repairWorkflows";
-
+import { findIssueByLabel } from "./repairWorkflows";
 import Step1 from "./Step1";
 import Step2 from "./Step2";
 import Step3 from "./Step3";
 import Step4 from "./Step4";
 import Step5 from "./Step5";
 
-// Use relative path — this matches your folder structure (src/lib/auth.ts or auth.js)
-import { getSession } from "../../lib/auth"; // ← if it's auth.js, change to "../../lib/auth.js"
+// Relative path to your auth file
+import { getSession } from "../../lib/auth.js";
 
 const steps = [
   { id: 1, title: "Choose your device & problem" },
@@ -23,153 +23,120 @@ const steps = [
 ];
 
 export default function RepairLayout() {
-  // Load saved state from localStorage on mount (prevents reset on refresh)
-  const [currentStep, setCurrentStep] = useState(() => {
-    const saved = localStorage.getItem("repairCurrentStep");
-    return saved ? parseInt(saved, 10) : 0;
-  });
+  const [currentStep, setCurrentStep] = useState(0);
+  const [maxUnlockedStep, setMaxUnlockedStep] = useState(0);
 
-  const [maxUnlockedStep, setMaxUnlockedStep] = useState(() => {
-    const saved = localStorage.getItem("repairMaxUnlockedStep");
-    return saved ? parseInt(saved, 10) : 0;
-  });
-
-  const [selectedModel, setSelectedModel] = useState<string | null>(() => {
-    return localStorage.getItem("repairSelectedModel") || null;
-  });
-
-  const [selectedIssue, setSelectedIssue] = useState<string | null>(() => {
-    return localStorage.getItem("repairSelectedIssue") || null;
-  });
-
-  const [notes, setNotes] = useState(() => {
-    return localStorage.getItem("repairNotes") || "";
-  });
-
-  const [customDevice, setCustomDevice] = useState(() => {
-    return localStorage.getItem("repairCustomDevice") || "";
-  });
-
-  const [customIssue, setCustomIssue] = useState(() => {
-    return localStorage.getItem("repairCustomIssue") || "";
-  });
+  const [selectedModel, setSelectedModel] = useState<string | null>(null);
+  const [selectedIssue, setSelectedIssue] = useState<string | null>(null);
+  const [notes, setNotes] = useState("");
+  const [customDevice, setCustomDevice] = useState("");
+  const [customIssue, setCustomIssue] = useState("");
 
   const [direction, setDirection] = useState<1 | -1>(1);
 
-  const [techAssigned, setTechAssigned] = useState(() => {
-    return localStorage.getItem("repairTechAssigned") === "true";
-  });
+  const [techAssigned, setTechAssigned] = useState(false);
+  const [techAssignedName, setTechAssignedName] = useState<string | null>(null);
 
-  const [techAssignedName, setTechAssignedName] = useState<string | null>(() => {
-    return localStorage.getItem("repairTechAssignedName") || null;
-  });
-
-  const [handoverConfirmed, setHandoverConfirmed] = useState(() => {
-    return localStorage.getItem("repairHandoverConfirmed") === "true";
-  });
+  const [handoverConfirmed, setHandoverConfirmed] = useState(false);
 
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [repairId, setRepairId] = useState<string | null>(null);
+  const [repairStatus, setRepairStatus] = useState<string | null>(null);
 
-  const [repairId, setRepairId] = useState<string | null>(() => {
-    return localStorage.getItem("repairId") || null;
-  });
-
-  const [repairStatus, setRepairStatus] = useState<string | null>(() => {
-    return localStorage.getItem("repairStatus") || null;
-  });
-
-  const [socket, setSocket] = useState<Socket | null>(null);
+  // Active repair data from /my endpoint
+  const [repair, setRepair] = useState<any>(null);
 
   const isStep1Valid = !!selectedModel && !!selectedIssue;
   const pricing = computePricing(selectedModel, selectedIssue);
   const workflow = getRepairWorkflow(selectedModel, selectedIssue);
 
-  // Save state to localStorage whenever it changes (prevents reset on refresh)
+  // Fetch active repair on mount
   useEffect(() => {
-    localStorage.setItem("repairCurrentStep", currentStep.toString());
-    localStorage.setItem("repairMaxUnlockedStep", maxUnlockedStep.toString());
-    localStorage.setItem("repairSelectedModel", selectedModel || "");
-    localStorage.setItem("repairSelectedIssue", selectedIssue || "");
-    localStorage.setItem("repairNotes", notes);
-    localStorage.setItem("repairCustomDevice", customDevice);
-    localStorage.setItem("repairCustomIssue", customIssue);
-    localStorage.setItem("repairTechAssigned", techAssigned.toString());
-    localStorage.setItem("repairTechAssignedName", techAssignedName || "");
-    localStorage.setItem("repairHandoverConfirmed", handoverConfirmed.toString());
-    localStorage.setItem("repairId", repairId || "");
-    localStorage.setItem("repairStatus", repairStatus || "");
-  }, [
-    currentStep,
-    maxUnlockedStep,
-    selectedModel,
-    selectedIssue,
-    notes,
-    customDevice,
-    customIssue,
-    techAssigned,
-    techAssignedName,
-    handoverConfirmed,
-    repairId,
-    repairStatus,
-  ]);
+    const session = getSession();
+    if (!session?.token) return;
 
-  // Socket.io setup
+    fetch("http://localhost:5000/api/repairs/my", {
+      headers: {
+        Authorization: `Bearer ${session.token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then((data) => {
+        if (data) {
+          setRepair(data);
+          setRepairId(data._id);
+          setRepairStatus(data.status);
+
+          // 🔥 Auto-resume correct step based on status
+          if (data.status === "pending") {
+            setCurrentStep(2); // waiting for acceptance
+          }
+          if (data.status === "accepted") {
+            setCurrentStep(3); // handover step
+          }
+          if (data.status === "in_progress") {
+            setCurrentStep(4); // stay on live repair page
+          }
+if (data.status === "awaiting_payment") {
+  setCurrentStep(4); // payment page
+}
+
+if (data.status === "paid") {
+  setCurrentStep(4); // still payment page but marked paid
+}
+
+if (data.status === "completed") {
+  setCurrentStep(4);
+}
+        }
+      })
+      .catch((err) => {
+        console.error("No active repair found", err);
+      });
+  }, []);
+
+  // Socket.io + real-time listener
   useEffect(() => {
-    const newSocket = io("http://localhost:5000", {
-      withCredentials: true,
-      reconnection: true,
-      reconnectionAttempts: 5,
-    });
-
-    setSocket(newSocket);
+    const newSocket = io("http://localhost:5000");
 
     const session = getSession();
     if (session?.userId) {
       newSocket.emit("join", session.userId);
-      console.log(`Socket: Joined room for userId ${session.userId}`);
-    } else {
-      console.warn("Socket: No userId found in session — cannot join room");
+      console.log(`Socket: Joined user room ${session.userId}`);
     }
 
-    // Listen for acceptance
-    newSocket.on(
-      "repair_accepted",
-      (data: { repairId: string; technicianId: string; technicianName: string }) => {
-        console.log("Socket event received: repair_accepted", data);
-        if (data.repairId === repairId) {
-          setTechAssigned(true);
-          setTechAssignedName(data.technicianName);
-          setRepairStatus("accepted");
-          alert(`Your repair has been accepted by ${data.technicianName}!`);
-          if (currentStep === 1) {
-            setDirection(1);
-            setCurrentStep(2);
-          }
-        } else {
-          console.warn("Socket: Repair ID mismatch", { expected: repairId, received: data.repairId });
-        }
-      }
-    );
+    // Join repair-specific room when we have repairId
+    if (repairId) {
+      newSocket.emit("join_repair", repairId);
+      console.log(`Socket: Joined repair room ${repairId}`);
+    }
 
-    newSocket.on("connect", () => {
-      console.log("Socket.io connected to backend!");
+    newSocket.on("repair_accepted", (data: { repairId: string; technicianName: string }) => {
+      console.log("Real-time: Repair accepted", data);
+      if (data.repairId === repairId) {
+        setTechAssigned(true);
+        setTechAssignedName(data.technicianName);
+        setRepairStatus("accepted");
+        alert(`Your repair has been accepted by ${data.technicianName}!`);
+        setCurrentStep(3); // move to handover
+      }
     });
 
-    newSocket.on("connect_error", (err) => {
-      console.error("Socket connection error:", err.message);
+    newSocket.on("repair_updated", (updatedRepair: any) => {
+      if (updatedRepair._id === repairId) {
+        setRepair(updatedRepair);
+        setRepairStatus(updatedRepair.status);
+        console.log("Repair updated live:", updatedRepair);
+      }
     });
 
     return () => {
       newSocket.disconnect();
     };
   }, [repairId, currentStep]);
-
-  // Reset handover on step 3
-  useEffect(() => {
-    if (currentStep === 2) {
-      setHandoverConfirmed(false);
-    }
-  }, [currentStep]);
 
   const handleGoToStep = (index: number) => {
     if (index > maxUnlockedStep) return;
@@ -199,20 +166,18 @@ export default function RepairLayout() {
           return;
         }
 
-        console.log("Booking request → token:", session.token);
-
         const res = await fetch("http://localhost:5000/api/repairs", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session.token}`,
           },
-          body: JSON.stringify({
-            deviceModel: selectedModel,
-            issue: selectedIssue,
-            description: notes,
-            address: "Customer Address",
-          }),
+body: JSON.stringify({
+  deviceModel: selectedModel,
+  issue: findIssueByLabel(selectedIssue)?.id,  // ✅ FIXED
+  description: notes,
+  address: "Customer Address",
+}),
         });
 
         if (!res.ok) {
@@ -224,11 +189,11 @@ export default function RepairLayout() {
 
         setRepairId(data._id);
         setRepairStatus(data.status);
+        setRepair(data); // save full repair object
 
         if (maxUnlockedStep < 2) setMaxUnlockedStep(2);
         setDirection(1);
         setCurrentStep(2);
-
       } catch (err: any) {
         console.error("Booking failed:", err);
         alert(`Failed to create repair: ${err.message}`);
@@ -336,7 +301,7 @@ export default function RepairLayout() {
               </motion.div>
             )}
 
-            {/* MAIN CARD - this is where your steps live */}
+            {/* MAIN ANIMATED CARD */}
             <div className="relative w-full flex justify-center">
               <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
@@ -363,7 +328,7 @@ export default function RepairLayout() {
                     </span>
                   </div>
 
-                  {/* STEP CONTENT - this is what was missing */}
+                  {/* STEP CONTENT */}
                   {currentStep === 0 && (
                     <Step1
                       selectedModel={selectedModel}
@@ -403,26 +368,53 @@ export default function RepairLayout() {
                       selectedModel={selectedModel}
                       selectedIssue={selectedIssue}
                       workflow={workflow}
+                      repair={repair}          // ← add this
+                      setRepair={setRepair}
                     />
                   )}
 
-                  {currentStep === 4 && (
-                    <Step5
-                      selectedModel={selectedModel}
-                      selectedIssue={selectedIssue}
-                      pricing={pricing}
-                    />
-                  )}
+{currentStep === 4 && (
+  <Step5
+    selectedModel={selectedModel}
+    selectedIssue={selectedIssue}
+    pricing={pricing}
+    repairId={repairId}
+  />
+)}  
 
-                  {/* Show repair status */}
-                  {repairStatus && (
-                    <div className="mt-4 text-center text-sm text-purple-300">
-                      Repair Status: <span className="font-bold">{repairStatus}</span>
+                  {/* Live timeline in step 4 */}
+                  {currentStep === 3 && repair?.stepsProgress && (
+                    <div className="mt-6 space-y-4">
+                      <h3 className="text-lg font-semibold text-white">Repair Progress</h3>
+                      <div className="space-y-3">
+                        {repair.stepsProgress.map((step: any, index: number) => (
+                          <div key={step.stepId} className="flex items-center gap-4">
+                            <div
+                              className={`w-4 h-4 rounded-full ${
+                                step.completed
+                                  ? "bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.9)]"
+                                  : "bg-gray-700"
+                              }`}
+                            />
+                            <div>
+                              <p className="text-sm text-gray-400">Step {index + 1}</p>
+                              <p className="font-medium text-white">{step.label}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
 
-                  {/* Show accepted technician */}
-                  {techAssignedName && currentStep <= 2 && (
+                  {/* STATUS BANNER */}
+                  {repairStatus && (
+                    <div className="mt-4 text-center text-purple-300">
+                      Status: <span className="font-bold">{repairStatus}</span>
+                    </div>
+                  )}
+
+                  {/* ACCEPTED BANNER */}
+                  {techAssignedName && (
                     <div className="mt-4 p-3 bg-green-900/40 border border-green-500/50 rounded-xl text-center">
                       <p className="text-green-300 font-semibold">
                         Technician {techAssignedName} has accepted your repair!
@@ -430,7 +422,7 @@ export default function RepairLayout() {
                     </div>
                   )}
 
-                  {/* bottom nav */}
+                  {/* BOTTOM NAV */}
                   <div className="mt-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <button

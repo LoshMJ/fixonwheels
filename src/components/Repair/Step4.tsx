@@ -1,5 +1,8 @@
 // src/components/repair/Step4.tsx
 import { useState, useEffect } from "react";
+import io from "socket.io-client";
+import { getSession } from "../../lib/auth.js"; // adjust path if needed
+
 import {
   getRepairWorkflow,
   findDeviceByModel,
@@ -12,60 +15,61 @@ interface Step4Props {
   selectedModel: string | null;
   selectedIssue: string | null;
   workflow: ReturnType<typeof getRepairWorkflow> | null;
+  repair?: any; // passed from parent (RepairLayout)
+  setRepair?: (repair: any) => void; // setter from parent
 }
 
-export default function Step4({ selectedModel, selectedIssue, workflow }: Step4Props) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [completedIds, setCompletedIds] = useState<string[]>([]);
+export default function Step4({
+  selectedModel,
+  selectedIssue,
+  workflow,
+  repair,
+  setRepair,
+}: Step4Props) {
   const [requestText, setRequestText] = useState("");
   const [requests, setRequests] = useState<
     { id: number; text: string; createdAt: string; status: "sent" | "queued" }[]
   >([]);
 
-  useEffect(() => {
-    // reset when model/issue changes
-    setActiveIndex(0);
-    setCompletedIds([]);
-    setRequests([]);
-    setRequestText("");
-  }, [selectedModel, selectedIssue, workflow?.issue?.id]);
+  // Live socket updates for step progress
+useEffect(() => {
+  const session = getSession();
 
-  if (!workflow) {
-    return (
-      <div className="mt-4 flex-1 flex items-center justify-center text-white/70 text-sm text-center">
-        <p className="max-w-md">
-          We&apos;ll show the live repair steps here once you&apos;ve selected a
-          device & issue and confirmed handover.
-        </p>
-      </div>
-    );
+  if (!session?.token || !session?.userId || !repair?._id) {
+    return; // clean early exit (returns void)
   }
 
-  const workflowSteps = workflow.steps;
-  const totalMinutes = workflow.totalMinutes;
+  const socket = io("http://localhost:5000");
 
-  const completedCount = completedIds.length;
-  const currentStep = workflowSteps[activeIndex];
-  const remainingMinutes = workflowSteps
-    .slice(activeIndex)
-    .reduce((sum: number, s: WorkflowStep) => sum + s.estMinutes, 0);
+  socket.emit("join", session.userId);
+  socket.emit("join_repair", repair._id);
 
-  const progress =
-    workflowSteps.length === 0 ? 0 : (completedCount / workflowSteps.length) * 100;
-
-  const handleMarkComplete = (step: WorkflowStep) => {
-    if (!completedIds.includes(step.id)) {
-      setCompletedIds((prev) => [...prev, step.id]);
+  socket.on("step_updated", (data: { repairId: string; stepId: string }) => {
+    if (data.repairId === repair._id && setRepair) {
+      setRepair((prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          stepsProgress: prev.stepsProgress?.map((s: any) =>
+            s.stepId === data.stepId
+              ? { ...s, completed: true }
+              : s
+          ),
+        };
+      });
     }
-    if (activeIndex < workflowSteps.length - 1) {
-      setActiveIndex(activeIndex + 1);
+  });
+
+  socket.on("repair_updated", (updatedRepair: any) => {
+    if (updatedRepair._id === repair._id && setRepair) {
+      setRepair(updatedRepair);
     }
-  };
+  });
 
-  const handleJumpToStep = (index: number) => {
-    setActiveIndex(index);
+  return () => {
+    socket.disconnect();
   };
-
+}, [repair?._id]);
   const handleSendRequest = () => {
     const trimmed = requestText.trim();
     if (!trimmed) return;
@@ -86,9 +90,23 @@ export default function Step4({ selectedModel, selectedIssue, workflow }: Step4P
   const deviceMeta = findDeviceByModel(selectedModel || "");
   const issueMeta = findIssueByLabel(selectedIssue || "");
 
+  if (!workflow && !repair?.stepsProgress) {
+    return (
+      <div className="mt-4 flex-1 flex items-center justify-center text-white/70 text-sm text-center">
+        <p className="max-w-md">
+          We&apos;ll show the live repair steps here once you&apos;ve selected a
+          device & issue and confirmed handover.
+        </p>
+      </div>
+    );
+  }
+
+  const workflowSteps = workflow?.steps || [];
+  const totalMinutes = workflow?.totalMinutes || 0;
+
   return (
     <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm md:text-base">
-      {/* LEFT: steps timeline */}
+      {/* LEFT: steps timeline (customer read-only view) */}
       <div className="flex flex-col gap-4">
         <div className="rounded-2xl bg-white/5 border border-white/15 px-5 py-4">
           <p className="text-xs uppercase tracking-[0.2em] text-white/60 mb-2">
@@ -98,7 +116,7 @@ export default function Step4({ selectedModel, selectedIssue, workflow }: Step4P
           <div className="flex items-center justify-between text-xs text-white/70 mb-3">
             <span>
               {issueMeta?.label || selectedIssue || "Selected issue"} ·{" "}
-              {workflowSteps.length} steps
+              {(repair?.stepsProgress?.length || workflowSteps.length)} steps
             </span>
             <span>
               Est.{" "}
@@ -112,38 +130,48 @@ export default function Step4({ selectedModel, selectedIssue, workflow }: Step4P
           <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden mb-4">
             <div
               className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-purple-500 transition-all"
-              style={{ width: `${progress}%` }}
+              style={{ width: "0%" }} // can be calculated from repair if needed
             />
           </div>
 
-          <div className="space-y-3 max-h-[260px] overflow-auto pr-1">
-            {workflowSteps.map((step: WorkflowStep, idx: number) => {
-              const done = completedIds.includes(step.id);
-              const isCurrent = idx === activeIndex && !done;
-
-              return (
-                <button
-                  key={step.id}
-                  type="button"
-                  onClick={() => handleJumpToStep(idx)}
-                  className={`w-full flex items-start gap-3 text-left px-3 py-2 rounded-2xl border text-xs md:text-sm transition ${
-                    done
-                      ? "bg-emerald-500/10 border-emerald-400/40 text-emerald-100"
-                      : isCurrent
-                      ? "bg-purple-500/10 border-purple-400/60 text-purple-100"
-                      : "bg-white/0 border-white/10 text-white/70 hover:bg-white/5"
-                  }`}
+          {/* Live steps from backend (read-only) */}
+          {repair?.stepsProgress ? (
+            <div className="space-y-4">
+              {repair.stepsProgress.map((step: any, index: number) => (
+                <div
+                  key={step.stepId}
+                  className="flex items-center justify-between px-4 py-3 rounded-xl border border-white/10 bg-white/5"
                 >
-                  <span
-                    className={`mt-0.5 h-6 w-6 flex items-center justify-center rounded-full text-[11px] font-semibold ${
-                      done
-                        ? "bg-emerald-400 text-black"
-                        : isCurrent
-                        ? "bg-purple-500 text-white"
-                        : "bg-white/10 text-white/70"
-                    }`}
-                  >
-                    {done ? "✓" : idx + 1}
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-white">
+                      {index + 1}. {step.label}
+                    </span>
+                  </div>
+
+                  <div>
+                    {step.completed ? (
+                      <span className="text-emerald-400 font-semibold text-sm">
+                        ✅ Done
+                      </span>
+                    ) : (
+                      <span className="text-white/40 text-sm">
+                        ⏳ Pending
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            // Fallback when no repair data yet
+            <div className="space-y-3 max-h-[260px] overflow-auto pr-1">
+              {workflowSteps.map((step: WorkflowStep, idx: number) => (
+                <div
+                  key={step.id}
+                  className="flex items-start gap-3 px-3 py-2 rounded-2xl border border-white/10 text-white/70"
+                >
+                  <span className="mt-0.5 h-6 w-6 flex items-center justify-center rounded-full bg-white/10 text-[11px] font-semibold">
+                    {idx + 1}
                   </span>
                   <div className="flex-1">
                     <p className="font-medium">{step.label}</p>
@@ -151,28 +179,8 @@ export default function Step4({ selectedModel, selectedIssue, workflow }: Step4P
                       ~{step.estMinutes} min
                     </p>
                   </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {currentStep && (
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <div className="text-xs text-white/60">
-                <p className="text-[11px] uppercase tracking-[0.2em] mb-1">
-                  Current step
-                </p>
-                <p className="text-white font-medium text-sm">
-                  {currentStep.label}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => handleMarkComplete(currentStep)}
-                className="px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-semibold transition shadow-[0_0_15px_rgba(16,185,129,0.7)]"
-              >
-                Mark step complete
-              </button>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -185,7 +193,7 @@ export default function Step4({ selectedModel, selectedIssue, workflow }: Step4P
           <p className="text-sm text-white/80">
             Approx.{" "}
             <span className="font-semibold text-white">
-              {remainingMinutes} min
+              {workflow?.totalMinutes || 0} min
             </span>{" "}
             left based on technician&apos;s workflow.
           </p>

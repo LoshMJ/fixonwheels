@@ -14,7 +14,7 @@
       "./src/types"
     ],
 "lib": ["ES2020"],
-"types": ["node"],
+"types": ["node", "express"],
     "allowSyntheticDefaultImports": true
   },
   "include": [

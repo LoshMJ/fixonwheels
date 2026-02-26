@@ -1,35 +1,26 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
+export type UserRole = "customer" | "technician" | "admin";
+
 interface JwtPayload {
   userId: string;
   email?: string;
-  role: string;             // ← This is the key change
-  iat?: number;
-  exp?: number;
-}
-
-export interface AuthRequest extends Request {
-  user?: JwtPayload;
+  role: UserRole;
 }
 
 export const requireAuth = (
-  req: AuthRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers.authorization;
+  const header = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    console.log("[Auth] Missing or invalid Authorization header");
-    return res.status(401).json({ message: "Unauthorized - No token provided" });
+  if (!header || !header.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const token = authHeader.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized - Token missing" });
-  }
+  const token = header.split(" ")[1];
 
   try {
     const decoded = jwt.verify(
@@ -37,42 +28,42 @@ export const requireAuth = (
       process.env.JWT_SECRET as string
     ) as JwtPayload;
 
-    if (decoded.exp && Date.now() >= decoded.exp * 1000) {
-      return res.status(401).json({ message: "Token expired" });
-    }
-
-    req.user = decoded;
-    console.log(`[Auth] User authenticated: ${decoded.userId} (${decoded.role})`);
+    (req as any).user = decoded; // ← bypass typing
     next();
-  } catch (error: any) {
-    console.error("[Auth] Token verification failed:", error.message);
-
-    if (error.name === "TokenExpiredError") {
-      return res.status(401).json({ message: "Token expired" });
-    }
-    if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ message: "Invalid token" });
-    }
-
-    return res.status(401).json({ message: "Authentication failed" });
+  } catch {
+    return res.status(401).json({ message: "Invalid token" });
   }
 };
 
-export const requireRole = (allowedRole: "customer" | "technician") => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized - No user context" });
-    }
+export const requireCustomer = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if ((req as any).user?.role !== "customer") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  next();
+};
 
-    if (req.user.role !== allowedRole) {
-      console.log(
-        `[Auth] Forbidden: User ${req.user.userId} (${req.user.role}) tried to access ${allowedRole} route`
-      );
-      return res.status(403).json({
-        message: `Forbidden - This action requires ${allowedRole} role`,
-      });
-    }
+export const requireTechnician = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if ((req as any).user?.role !== "technician") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  next();
+};
 
-    next();
-  };
+export const requireAdmin = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if ((req as any).user?.role !== "admin") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  next();
 };
