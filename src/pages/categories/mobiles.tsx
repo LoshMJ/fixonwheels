@@ -49,5 +49,5 @@ export default function MobilesPage() {
     []
   );
 
-  return <CategoryPage pageTitle="Mobiles" products={products} />;
+return <CategoryPage pageTitle="Mobiles" category="mobiles" />;
 }

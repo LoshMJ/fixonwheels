@@ -41,5 +41,4 @@ export default function HeadsetsPage() {
     []
   );
 
-  return <CategoryPage pageTitle="Headsets & Earbuds" products={products} />;
-}
+return <CategoryPage pageTitle="Headsets & Earbuds" category="headsets" />;}

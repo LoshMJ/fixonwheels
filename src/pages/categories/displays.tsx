@@ -40,5 +40,4 @@ export default function DisplaysPage() {
     []
   );
 
-  return <CategoryPage pageTitle="Displays & Screens" products={products} />;
-}
+return <CategoryPage pageTitle="Displays & Screens" category="displays" />;}

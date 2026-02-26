@@ -1,3 +1,4 @@
+// src/controllers/auth.controller.ts
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -6,19 +7,13 @@ import { User } from "../models/User";
 function signToken(payload: { userId: string; role: string }) {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error("JWT_SECRET missing in .env");
-
   return jwt.sign(payload, secret, { expiresIn: "7d" });
 }
 
-/**
- * POST /api/auth/register
- * Body: { name, email, password, role: "customer" | "technician" }
- */
 export async function register(req: Request, res: Response) {
   try {
     const { name, email, password, role } = req.body ?? {};
 
-    // ✅ Fix for your earlier error: req.body undefined
     if (!name || !email || !password || !role) {
       return res.status(400).json({
         message: "Missing fields",
@@ -26,6 +21,7 @@ export async function register(req: Request, res: Response) {
       });
     }
 
+    // only customer/technician can register publicly
     if (role !== "customer" && role !== "technician") {
       return res.status(400).json({ message: "Invalid role" });
     }
@@ -55,15 +51,11 @@ export async function register(req: Request, res: Response) {
       },
     });
   } catch (err: any) {
-    console.error("register error:", err?.message || err);
+    console.error("register error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 }
 
-/**
- * POST /api/auth/login
- * Body: { email, password }
- */
 export async function login(req: Request, res: Response) {
   try {
     const { email, password } = req.body ?? {};
@@ -72,8 +64,14 @@ export async function login(req: Request, res: Response) {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    const user = await User.findOne({ email });
+    // ✅ IMPORTANT: force-select password
+    const user = await User.findOne({ email }).select("+password");
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
+
+    if (!user.password) {
+      console.error("login error: password not returned from DB (select:false issue)");
+      return res.status(500).json({ message: "Server error" });
+    }
 
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(401).json({ message: "Invalid credentials" });
@@ -91,7 +89,7 @@ export async function login(req: Request, res: Response) {
       },
     });
   } catch (err: any) {
-    console.error("login error:", err?.message || err);
+    console.error("login error:", err); // ✅ this will show the REAL reason
     return res.status(500).json({ message: "Server error" });
   }
 }

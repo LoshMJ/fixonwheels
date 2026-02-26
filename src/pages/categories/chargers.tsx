@@ -42,5 +42,4 @@ export default function ChargersPage() {
     []
   );
 
-  return <CategoryPage pageTitle="Chargers" products={products} />;
-}
+return <CategoryPage pageTitle="Chargers" category="chargers" />;}

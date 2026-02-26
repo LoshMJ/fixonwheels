@@ -6,14 +6,21 @@ import publicRoutes from "./routes/public";
 import adminRoutes from "./routes/admin";
 import authRoutes from "./routes/auth.routes";
 import { seedAdmin } from "./seed/seedAdmin";
+import orderRoutes from "./routes/order.routes";
+import path from "path";
 
 dotenv.config();
 
 const app = express();
 
+//upload image
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+
 // Middlewares
 app.use(cors());
 app.use(express.json());
+
 
 // Health route (always keep)
 app.get("/health", (_req, res) => {
@@ -29,6 +36,7 @@ app.get("/", (_req, res) => {
 app.use("/api", publicRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/orders", orderRoutes);
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
 

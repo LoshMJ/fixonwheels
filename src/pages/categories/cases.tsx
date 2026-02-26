@@ -41,5 +41,4 @@ export default function CasesPage() {
     []
   );
 
-  return <CategoryPage pageTitle="Cases & Covers" products={products} />;
-}
+return <CategoryPage pageTitle="Cases & Covers" category="cases" />;}
