@@ -33,7 +33,8 @@ export async function api<T = any>(path: string, options: RequestInit = {}) {
   const token = getToken();
 
   // ✅ If body is FormData, DO NOT set Content-Type.
-  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+  const isFormData =
+    typeof FormData !== "undefined" && options.body instanceof FormData;
 
   const headers = new Headers(options.headers || {});
   if (!isFormData && !headers.has("Content-Type")) {

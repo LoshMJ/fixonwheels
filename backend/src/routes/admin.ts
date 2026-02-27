@@ -184,7 +184,7 @@ router.get("/users", async (_req, res) => {
 router.get("/technicians", async (_req, res) => {
   try {
     const techs = await User.find({ role: "technician" }).select(
-      "_id name email role createdAt"
+      "_id name email role technicianStatus createdAt"
     );
     return res.json(techs);
   } catch (err: any) {
@@ -192,6 +192,42 @@ router.get("/technicians", async (_req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 });
+
+// ✅ APPROVE technician
+router.patch("/technicians/:id/approve", async (req, res) => {
+  try {
+    const updated = await User.findOneAndUpdate(
+      { _id: req.params.id, role: "technician" },
+      { technicianStatus: "approved" },
+      { new: true }
+    ).select("_id name email role technicianStatus");
+
+    if (!updated) return res.status(404).json({ message: "Technician not found" });
+    return res.json(updated);
+  } catch (err: any) {
+    console.error("approve technician error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ✅ REJECT technician
+router.patch("/technicians/:id/reject", async (req, res) => {
+  try {
+    const updated = await User.findOneAndUpdate(
+      { _id: req.params.id, role: "technician" },
+      { technicianStatus: "rejected" },
+      { new: true }
+    ).select("_id name email role technicianStatus");
+
+    if (!updated) return res.status(404).json({ message: "Technician not found" });
+    return res.json(updated);
+  } catch (err: any) {
+    console.error("reject technician error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 
 router.patch("/users/:id", async (req, res) => {
   try {

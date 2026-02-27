@@ -1,7 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { api, resolveImgUrl } from "../../services/api";
 
-export type CategoryId = "mobiles" | "chargers" | "headsets" | "displays" | "cases";
+export type CategoryId =
+  | "mobiles"
+  | "chargers"
+  | "headsets"
+  | "displays"
+  | "cases";
 
 export type ProductItem = {
   _id: string;
@@ -40,9 +45,65 @@ type Props = {
 
 const money = (n: number) => `Rs. ${Number(n || 0).toLocaleString("en-LK")}`;
 
+/* =========================================================
+   ✅ FIX HELPERS (ONLY for [""] issue + duplicates)
+========================================================= */
+
+// turns: ["iphone"] -> iphone, ["Black"] -> Black, ' "iphone" ' -> iphone
+const cleanOne = (v: any) => {
+  if (v === null || v === undefined) return "";
+  let s = String(v);
+
+  // if string contains JSON-like array: ["iphone"]
+  const t = s.trim();
+  if (t.startsWith("[") && t.endsWith("]")) {
+    try {
+      const parsed = JSON.parse(t);
+      if (Array.isArray(parsed)) s = parsed[0] ?? "";
+    } catch {
+      // fallback: remove brackets/quotes
+      s = t.replace(/[\[\]]/g, "");
+    }
+  }
+
+  // remove quotes + extra brackets if any
+  s = String(s).replace(/[\[\]"']/g, "").trim();
+
+  return s;
+};
+
+// convert any input into a clean string list, remove empties, remove duplicates
+const cleanList = (v: any): string[] => {
+  if (!v) return [];
+
+  // already array
+  if (Array.isArray(v)) {
+    const out = v.map(cleanOne).filter(Boolean);
+    return Array.from(new Set(out.map((x) => x.toLowerCase()))).map((lc) => {
+      // keep original casing by finding first match
+      return out.find((o) => o.toLowerCase() === lc) || lc;
+    });
+  }
+
+  // string might be '["iphone","samsung"]' or 'iphone'
+  const s = String(v).trim();
+  if (s.startsWith("[") && s.endsWith("]")) {
+    try {
+      const parsed = JSON.parse(s);
+      if (Array.isArray(parsed)) return cleanList(parsed);
+    } catch {
+      // continue
+    }
+  }
+
+  const one = cleanOne(s);
+  return one ? [one] : [];
+};
+
 // ✅ map color names -> css color (for circles)
 const colorToCss = (c: string) => {
-  const key = c.trim().toLowerCase();
+  const key = cleanOne(c).trim().toLowerCase();
+
   const map: Record<string, string> = {
     black: "#111827",
     white: "#ffffff",
@@ -117,23 +178,41 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
     setPriceTo(maxPrice);
   }, [minPrice, maxPrice]);
 
-  // ✅ auto-build models/colors from products
+  // ✅ auto-build models/colors from products (FIX: clean + dedupe)
   const autoModels = useMemo(() => {
-    const s = new Set<string>();
+    const all: string[] = [];
     products.forEach((p) => {
-      if (p.model) s.add(p.model);
-      p.models?.forEach((m) => s.add(m));
+      all.push(...cleanList(p.model));
+      all.push(...cleanList(p.models));
     });
-    return Array.from(s);
+    // dedupe
+    const lower = new Set<string>();
+    const out: string[] = [];
+    for (const x of all) {
+      const k = x.toLowerCase();
+      if (lower.has(k)) continue;
+      lower.add(k);
+      out.push(x);
+    }
+    return out;
   }, [products]);
 
   const autoColors = useMemo(() => {
-    const s = new Set<string>();
+    const all: string[] = [];
     products.forEach((p) => {
-      if (p.color) s.add(p.color);
-      p.colors?.forEach((c) => s.add(c));
+      all.push(...cleanList(p.color));
+      all.push(...cleanList(p.colors));
     });
-    return Array.from(s);
+    // dedupe
+    const lower = new Set<string>();
+    const out: string[] = [];
+    for (const x of all) {
+      const k = x.toLowerCase();
+      if (lower.has(k)) continue;
+      lower.add(k);
+      out.push(x);
+    }
+    return out;
   }, [products]);
 
   const filtered = useMemo(() => {
@@ -145,10 +224,16 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
       const priceNum = Number(p.price || 0);
       const priceOk = priceNum >= priceFrom && priceNum <= priceTo;
 
-      const productModels = p.models?.length ? p.models : p.model ? [p.model] : [];
+      const productModels = [
+        ...cleanList(p.models),
+        ...cleanList(p.model),
+      ];
       const modelOk = selectedModel === "All" || productModels.includes(selectedModel);
 
-      const productColors = p.colors?.length ? p.colors : p.color ? [p.color] : [];
+      const productColors = [
+        ...cleanList(p.colors),
+        ...cleanList(p.color),
+      ];
       const colorOk = selectedColor === null || productColors.includes(selectedColor);
 
       return titleOk && priceOk && modelOk && colorOk;
@@ -156,8 +241,13 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
   }, [products, q, priceFrom, priceTo, selectedModel, selectedColor]);
 
   const handleAdd = (p: ProductItem) => {
-    const finalModel = selectedModel !== "All" ? selectedModel : p.models?.[0] ?? p.model;
-    const finalColor = selectedColor ?? p.colors?.[0] ?? p.color;
+    const productModels = [...cleanList(p.models), ...cleanList(p.model)];
+    const productColors = [...cleanList(p.colors), ...cleanList(p.color)];
+
+    const finalModel =
+      selectedModel !== "All" ? selectedModel : productModels[0] ?? "";
+    const finalColor =
+      selectedColor ?? productColors[0] ?? "";
 
     if (onAddToCart) {
       onAddToCart({
@@ -165,13 +255,13 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
         title: p.title,
         price: p.price,
         img: p.img,
-        model: finalModel,
-        color: finalColor,
+        model: finalModel || undefined,
+        color: finalColor || undefined,
       });
       return;
     }
 
-    alert(`Added: ${p.title}\nModel: ${finalModel ?? "-"}\nColor: ${finalColor ?? "-"}`);
+    alert(`Added: ${p.title}\nModel: ${finalModel || "-"}\nColor: ${finalColor || "-"}`);
   };
 
   return (
@@ -279,7 +369,11 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
                       onClick={() => setSelectedColor(c)}
                       title={c}
                       className={`relative w-9 h-9 rounded-full border-2 transition
-                        ${selected ? "border-white scale-110" : "border-white/20 hover:scale-105"}
+                        ${
+                          selected
+                            ? "border-white scale-110"
+                            : "border-white/20 hover:scale-105"
+                        }
                       `}
                       style={{ backgroundColor: css }}
                     >
@@ -325,7 +419,13 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
           <main className="bg-[#cfe88b] rounded-2xl p-4 md:p-6 text-black">
             <div className="flex items-center justify-between">
               <p className="font-bold">
-                {loading ? "Loading..." : <>Showing <span className="underline">{filtered.length}</span> items</>}
+                {loading ? (
+                  "Loading..."
+                ) : (
+                  <>
+                    Showing <span className="underline">{filtered.length}</span> items
+                  </>
+                )}
               </p>
             </div>
 
@@ -336,9 +436,13 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
             ) : (
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filtered.map((p) => {
+                  const productModels = [...cleanList(p.models), ...cleanList(p.model)];
+                  const productColors = [...cleanList(p.colors), ...cleanList(p.color)];
+
                   const showModel =
-                    selectedModel !== "All" ? selectedModel : p.model ?? p.models?.[0];
-                  const showColor = selectedColor ?? p.color ?? p.colors?.[0];
+                    selectedModel !== "All" ? selectedModel : productModels[0] ?? "";
+                  const showColor =
+                    selectedColor ?? productColors[0] ?? "";
 
                   return (
                     <div
@@ -346,7 +450,6 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
                       className="bg-white rounded-2xl border border-black/10 overflow-hidden shadow-sm"
                     >
                       <div className="h-44 bg-gray-50 flex items-center justify-center">
-                        {/* ✅ UPDATED IMG SECTION ONLY */}
                         <img
                           src={resolveImgUrl(p.img)}
                           alt={p.title}

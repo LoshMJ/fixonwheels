@@ -1,0 +1,19 @@
+[33m454bee1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{0}: reset: moving to ORIG_HEAD
+[33m454bee1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{1}: reset: moving to HEAD~1
+[33m0671979[m HEAD@{2}: commit: save before pull
+[33m454bee1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{3}: commit: Added admin panel + seed admin + shop updates
+[33ma470c8d[m[33m ([m[1;31morgin/main[m[33m)[m HEAD@{4}: commit (merge): Initial commit
+[33mdbb01b2[m HEAD@{5}: commit: Save local changes before pull
+[33mc56f473[m HEAD@{6}: commit: Frontend updates and backend initial setup with MongoDB connection
+[33m9536fb1[m HEAD@{7}: commit (merge): shop
+[33mf660380[m HEAD@{8}: commit (merge): Merge origin/main into main
+[33m494814e[m HEAD@{9}: commit (merge): Merge origin/main into main
+[33m6b84587[m HEAD@{10}: commit: mathu
+[33m1aef0db[m HEAD@{11}: Branch: renamed refs/heads/main to refs/heads/main
+[33m1aef0db[m HEAD@{13}: commit (merge): Mathu
+[33m9b8ed97[m HEAD@{14}: commit: mathu
+[33m1cc535e[m HEAD@{15}: commit (merge): Updated some files
+[33m8cc6de9[m HEAD@{16}: commit: Updated second layout and UI adjustments
+[33m0da6523[m HEAD@{17}: commit: Coded the hero section -losh
+[33m33c171a[m HEAD@{18}: Branch: renamed refs/heads/master to refs/heads/main
+[33m33c171a[m HEAD@{20}: commit (initial): Initial project setup - Vite + React + Tailwind
