@@ -233,32 +233,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Bar chart */}
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Repairs by Type</h2>
-          <span className="text-xs text-white/60">Category</span>
-        </div>
-
-        <div className="mt-4 h-[320px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={stats?.repairsByType ?? []}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-              <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" />
-              <YAxis stroke="rgba(255,255,255,0.5)" />
-              <Tooltip
-                contentStyle={{
-                  background: "rgba(10,10,10,0.95)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: 12,
-                  color: "white",
-                }}
-              />
-              <Bar dataKey="value" fill="rgba(34,197,94,0.9)" radius={[10, 10, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+     
     </div>
   );
 }

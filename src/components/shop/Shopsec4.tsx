@@ -67,7 +67,7 @@ export default function RecentItemsSlider() {
     <section className="w-full py-24 bg-black text-white relative">
       {/* TITLE */}
       <h2 className="text-3xl font-bold text-center mb-12">
-        Recently Arrived
+        Top Rated
       </h2>
 
       {/* SLIDER WRAPPER */}

@@ -17,7 +17,7 @@ export const products: Product[] = [
     title: "Christmas Gift Hamper",
     price: 3850,
     images: [
-      "/src/assets/astronaut.png",
+      "/src/assets/phones/i16.png",
       "/src/assets/galaxy-bg.jpg",
       "/src/assets/laprobo.png",
     ],
@@ -31,7 +31,7 @@ export const products: Product[] = [
     title: "Christmas Gift Hamper",
     price: 3850,
     images: [
-      "/src/assets/astronaut.png",
+      "/src/assets/phones/i11.png",
       "/src/assets/galaxy-bg.jpg",
       "/src/assets/laprobo.png",
     ],
@@ -45,7 +45,7 @@ export const products: Product[] = [
     title: "Christmas Gift Hamper",
     price: 3850,
     images: [
-      "/src/assets/astronaut.png",
+      "/src/assets/phones/i13.png",
       "/src/assets/galaxy-bg.jpg",
       "/src/assets/laprobo.png",
     ],
@@ -59,7 +59,7 @@ export const products: Product[] = [
     title: "Christmas Gift Hamper",
     price: 3850,
     images: [
-      "/src/assets/astronaut.png",
+      "/src/assets/phones/i10.png",
       "/src/assets/galaxy-bg.jpg",
       "/src/assets/laprobo.png",
     ],
@@ -73,7 +73,7 @@ export const products: Product[] = [
     title: "Christmas Gift Hamper",
     price: 3850,
     images: [
-      "/src/assets/astronaut.png",
+      "/src/assets/phones/i17.png",
       "/src/assets/galaxy-bg.jpg",
       "/src/assets/laprobo.png",
     ],
@@ -87,7 +87,7 @@ export const products: Product[] = [
     title: "Christmas Gift Hamper",
     price: 3850,
     images: [
-      "/src/assets/astronaut.png",
+      "/src/assets/phones/i15.png",
       "/src/assets/galaxy-bg.jpg",
       "/src/assets/laprobo.png",
     ],

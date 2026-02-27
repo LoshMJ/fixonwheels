@@ -1,5 +1,7 @@
 import React, { useMemo } from "react";
 import CategoryPage from "./CategoryPage";
+import iphone13 from "../../assets/iphone.png";
+
 
 type ProductItem = {
   id: string;
@@ -35,7 +37,7 @@ export default function MobilesPage() {
         price: 62999,
         model: "Redmi Note",
         color: "Gray",
-        img: "https://images.unsplash.com/photo-1580915411954-282cb1b0d780?w=800&q=80&auto=format&fit=crop",
+        img: iphone13,
       },
       {
         id: "m4",

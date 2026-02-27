@@ -1,4 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
+import Apple from "../../assets/brands/Apple.png";
+import Samsung from "../../assets/brands/Sam.png";
+import dell from "../../assets/brands/dell.png";
+import LG from "../../assets/brands/LG.png";
+import hp from "../../assets/brands/hp.webp";
+import sony from "../../assets/brands/sony.png";
+
+
+
 
 type Category = { id: string; label: string; img: string };
 type Slide = {
@@ -15,33 +24,33 @@ export default function HeroSlider() {
     () => [
       {
         id: "mobile",
-        label: "Mobiles",
-        img: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=900&q=80&auto=format&fit=crop",
+        label: "Apple",
+        img: Apple,
       },
       {
         id: "charger",
         label: "Chargers",
-        img: "https://images.unsplash.com/photo-1616596878223-4b58fdc51e67?w=900&q=80&auto=format&fit=crop",
+        img: Samsung,
       },
       {
         id: "earbuds",
-        label: "Earbuds",
-        img: "https://images.unsplash.com/photo-1585386959984-a41552231693?w=900&q=80&auto=format&fit=crop",
+        label: "dell",
+        img: dell,
       },
       {
         id: "headset",
-        label: "Headsets",
-        img: "https://images.unsplash.com/photo-1519677100203-a0e668c92439?w=900&q=80&auto=format&fit=crop",
+        label: "LG",
+        img: LG,
       },
       {
         id: "case",
-        label: "Mobile Cases",
-        img: "https://images.unsplash.com/photo-1526045431048-f857369baa09?w=900&q=80&auto=format&fit=crop",
+        label: "HP ",
+        img: hp,
       },
       {
         id: "display",
-        label: "Displays",
-        img: "https://images.unsplash.com/photo-1527443154391-507e9dc6c5cc?w=900&q=80&auto=format&fit=crop",
+        label: "Sony",
+        img: sony,
       },
       {
         id: "premium",
@@ -59,7 +68,7 @@ export default function HeroSlider() {
         title: "New Season Deals",
         subtitle: "Latest mobiles, accessories, and more — best prices in one place.",
         cta: "Shop now",
-        bg: "#cfe88b",
+        bg: "#9E59C7",
         rightImg:
           "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1400&q=80&auto=format&fit=crop",
       },
@@ -68,7 +77,7 @@ export default function HeroSlider() {
         title: "Fast Charging",
         subtitle: "Safe, reliable chargers and power banks for every device.",
         cta: "Explore chargers",
-        bg: "#cfe88b",
+        bg: "#9E59C7",
         rightImg:
           "https://images.unsplash.com/photo-1616596878223-4b58fdc51e67?w=1400&q=80&auto=format&fit=crop",
       },
@@ -77,7 +86,7 @@ export default function HeroSlider() {
         title: "Audio Essentials",
         subtitle: "Earbuds & headsets — clear sound, strong bass, daily comfort.",
         cta: "Browse audio",
-        bg: "#cfe88b",
+        bg: "#9E59C7",
         rightImg:
           "https://images.unsplash.com/photo-1585386959984-a41552231693?w=1400&q=80&auto=format&fit=crop",
       },
@@ -111,7 +120,7 @@ export default function HeroSlider() {
           <div className="flex gap-4 overflow-x-auto pb-2">
             {categories.map((c) => (
               <div key={c.id} className="min-w-[160px]">
-                <div className="bg-[#cfe88b] rounded-2xl h-[88px] flex items-center justify-center overflow-hidden">
+                <div className="bg-[#9E59C7] rounded-2xl h-[88px] flex items-center justify-center overflow-hidden">
                   <img
                     src={c.img}
                     alt={c.label}

@@ -10,7 +10,7 @@ export default function Products() {
       
       {/* Header + Button Row */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">New Additions</h2>
+        <h2 className="text-2xl font-bold">Shop Now </h2>
 
         <button
           onClick={() => navigate("/all-products")}

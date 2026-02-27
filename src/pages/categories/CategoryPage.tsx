@@ -416,7 +416,7 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
           </aside>
 
           {/* Products */}
-          <main className="bg-[#cfe88b] rounded-2xl p-4 md:p-6 text-black">
+          <main className="bg-[#9E59C7] rounded-2xl p-4 md:p-6 text-black">
             <div className="flex items-center justify-between">
               <p className="font-bold">
                 {loading ? (

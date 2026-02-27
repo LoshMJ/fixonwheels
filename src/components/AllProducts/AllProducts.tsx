@@ -121,7 +121,7 @@ function SectionRow({ section }: { section: Section }) {
   };
 
   return (
-    <div className="relative bg-[#cfe88b] rounded-2xl p-4 md:p-6 overflow-hidden">
+    <div className="relative bg-[#9E59C7] rounded-2xl p-4 md:p-6 overflow-hidden">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h2 className="text-lg md:text-xl font-extrabold text-gray-900">{section.title}</h2>

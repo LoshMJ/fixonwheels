@@ -246,7 +246,7 @@ function ProductCard({
           }}
           className="mt-2 text-sm flex items-center gap-2 text-white/70 transition-all duration-300 group-hover:text-white"
         >
-          Learn More <span className="transition-transform group-hover:translate-x-1">↗</span>
+          See More <span className="transition-transform group-hover:translate-x-1">↗</span>
         </button>
       </div>
     </div>
