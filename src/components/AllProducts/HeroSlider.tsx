@@ -38,11 +38,6 @@ export default function HeroSlider() {
         img: dell,
       },
       {
-        id: "headset",
-        label: "LG",
-        img: LG,
-      },
-      {
         id: "case",
         label: "HP ",
         img: hp,
@@ -51,6 +46,11 @@ export default function HeroSlider() {
         id: "display",
         label: "Sony",
         img: sony,
+      },
+       {
+        id: "headset",
+        label: "LG",
+        img: LG,
       },
       {
         id: "premium",
@@ -79,7 +79,7 @@ export default function HeroSlider() {
         cta: "Explore chargers",
         bg: "#9E59C7",
         rightImg:
-          "https://images.unsplash.com/photo-1616596878223-4b58fdc51e67?w=1400&q=80&auto=format&fit=crop",
+          "https://play-lh.googleusercontent.com/f27LklrbeYhYmSmXtg3eFVeRnbTNmZTWxCJa110CtVWgnFCcs6CXSy-kONRsyZlCr9I",
       },
       {
         id: "s3",
@@ -88,7 +88,7 @@ export default function HeroSlider() {
         cta: "Browse audio",
         bg: "#9E59C7",
         rightImg:
-          "https://images.unsplash.com/photo-1585386959984-a41552231693?w=1400&q=80&auto=format&fit=crop",
+          "https://c8.alamy.com/comp/2E2H96M/mix-tape-retro-cassette-on-explosion-bubble-design-music-vintage-and-audio-theme-vector-illustration-2E2H96M.jpg",
       },
     ],
     []
@@ -96,7 +96,7 @@ export default function HeroSlider() {
 
   const [index, setIndex] = useState(0);
 
-  // ✅ auto slide
+  //  auto slide
   useEffect(() => {
     const t = setInterval(() => {
       setIndex((i) => (i + 1) % slides.length);

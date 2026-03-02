@@ -1,25 +1,21 @@
 import { Router } from "express";
-import Product from "../models/Product";
-import RecentItem from "../models/RecentItem";
-import PromoPost from "../models/PromoPost";
-import { upload } from "../middleware/upload.middleware";
-
-import {
-  requireAuth,
-  requireRole,
-  AuthRequest,
-} from "../middleware/auth.middleware";
 
 import { User } from "../models/User";
 import { Order } from "../models/Order";
-import { Repair } from "../models/Repair";
+import { Repair } from "../models/Repair";      // ← fixed & clean
+import Product from "../models/Product";        // ← if this one uses default export
+import RecentItem from "../models/RecentItem";
+import PromoPost from "../models/PromoPost";
+
+import { upload } from "../middleware/upload.middleware";
+import { requireAuth } from "../middleware/auth.middleware";
+
 import bcrypt from "bcryptjs";
 
 import { buildInvoicePdf } from "../utils/invoice";
 import { sendOrderCompletedEmail } from "../utils/mailer";
 
 import type { Request } from "express";
-
 type MulterRequest = Request & {
   file?: any;
 }
@@ -27,7 +23,12 @@ type MulterRequest = Request & {
 const router = Router();
 
 router.use(requireAuth);
-router.use(requireRole("admin"));
+router.use((req: any, res, next) => {
+  if (req.user?.role !== "admin") {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+  next();
+});
 
 const daysShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 

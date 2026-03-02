@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { api, resolveImgUrl } from "../../services/api";
+import { useCart } from "../../context/CartContext";
+import { useNavigate } from "react-router-dom";
 
 export type CategoryId =
   | "mobiles"
@@ -45,9 +47,7 @@ type Props = {
 
 const money = (n: number) => `Rs. ${Number(n || 0).toLocaleString("en-LK")}`;
 
-/* =========================================================
-   ✅ FIX HELPERS (ONLY for [""] issue + duplicates)
-========================================================= */
+/* FIX HELPERS (ONLY for [""] issue + duplicates) */
 
 // turns: ["iphone"] -> iphone, ["Black"] -> Black, ' "iphone" ' -> iphone
 const cleanOne = (v: any) => {
@@ -100,7 +100,7 @@ const cleanList = (v: any): string[] => {
   return one ? [one] : [];
 };
 
-// ✅ map color names -> css color (for circles)
+//  map color names -> css color (for circles)
 const colorToCss = (c: string) => {
   const key = cleanOne(c).trim().toLowerCase();
 
@@ -126,10 +126,13 @@ const colorToCss = (c: string) => {
 };
 
 export default function CategoryPage({ pageTitle, category, onAddToCart }: Props) {
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
+
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
 
-  // ✅ from backend
+  //  from backend
   const [products, setProducts] = useState<ProductItem[]>([]);
 
   // filters
@@ -140,7 +143,7 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
   const [priceFrom, setPriceFrom] = useState(0);
   const [priceTo, setPriceTo] = useState(0);
 
-  // ✅ load products
+  //  load products
   const load = async () => {
     setLoading(true);
     setMsg("");
@@ -148,7 +151,7 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
       const data = await api<ProductItem[]>("/products"); // GET /api/products
       const arr = Array.isArray(data) ? data : [];
 
-      // ✅ filter by category from DB
+      //  filter by category from DB
       const catProducts = arr.filter((p) => (p.category || "mobiles") === category);
 
       setProducts(catProducts);
@@ -168,7 +171,7 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
     setSelectedColor(null);
   }, [category]);
 
-  // ✅ recompute min/max and sync slider inputs when products change
+  //  recompute min/max and sync slider inputs when products change
   const prices = useMemo(() => products.map((p) => Number(p.price || 0)), [products]);
   const minPrice = prices.length ? Math.min(...prices) : 0;
   const maxPrice = prices.length ? Math.max(...prices) : 0;
@@ -178,14 +181,13 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
     setPriceTo(maxPrice);
   }, [minPrice, maxPrice]);
 
-  // ✅ auto-build models/colors from products (FIX: clean + dedupe)
+  //  auto-build models/colors from products (FIX: clean + dedupe)
   const autoModels = useMemo(() => {
     const all: string[] = [];
     products.forEach((p) => {
       all.push(...cleanList(p.model));
       all.push(...cleanList(p.models));
     });
-    // dedupe
     const lower = new Set<string>();
     const out: string[] = [];
     for (const x of all) {
@@ -203,7 +205,6 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
       all.push(...cleanList(p.color));
       all.push(...cleanList(p.colors));
     });
-    // dedupe
     const lower = new Set<string>();
     const out: string[] = [];
     for (const x of all) {
@@ -224,31 +225,28 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
       const priceNum = Number(p.price || 0);
       const priceOk = priceNum >= priceFrom && priceNum <= priceTo;
 
-      const productModels = [
-        ...cleanList(p.models),
-        ...cleanList(p.model),
-      ];
+      const productModels = [...cleanList(p.models), ...cleanList(p.model)];
       const modelOk = selectedModel === "All" || productModels.includes(selectedModel);
 
-      const productColors = [
-        ...cleanList(p.colors),
-        ...cleanList(p.color),
-      ];
+      const productColors = [...cleanList(p.colors), ...cleanList(p.color)];
       const colorOk = selectedColor === null || productColors.includes(selectedColor);
 
       return titleOk && priceOk && modelOk && colorOk;
     });
   }, [products, q, priceFrom, priceTo, selectedModel, selectedColor]);
 
+  //  UPDATED: Add to cart + go to /cart
   const handleAdd = (p: ProductItem) => {
     const productModels = [...cleanList(p.models), ...cleanList(p.model)];
     const productColors = [...cleanList(p.colors), ...cleanList(p.color)];
 
     const finalModel =
       selectedModel !== "All" ? selectedModel : productModels[0] ?? "";
+
     const finalColor =
       selectedColor ?? productColors[0] ?? "";
 
+    // If parent passed handler, use it
     if (onAddToCart) {
       onAddToCart({
         productId: p._id,
@@ -258,10 +256,23 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
         model: finalModel || undefined,
         color: finalColor || undefined,
       });
+      navigate("/cart");
       return;
     }
 
-    alert(`Added: ${p.title}\nModel: ${finalModel || "-"}\nColor: ${finalColor || "-"}`);
+    // Otherwise: use CartContext directly
+    addToCart({
+      productId: p._id,
+      title: p.title,
+      price: p.price,
+      image: resolveImgUrl(p.img),
+      options: {
+        model: finalModel || undefined,
+        color: finalColor || "Default",
+      },
+    });
+
+    navigate("/cart");
   };
 
   return (
@@ -441,8 +452,7 @@ export default function CategoryPage({ pageTitle, category, onAddToCart }: Props
 
                   const showModel =
                     selectedModel !== "All" ? selectedModel : productModels[0] ?? "";
-                  const showColor =
-                    selectedColor ?? productColors[0] ?? "";
+                  const showColor = selectedColor ?? productColors[0] ?? "";
 
                   return (
                     <div

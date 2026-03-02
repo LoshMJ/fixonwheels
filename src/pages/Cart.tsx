@@ -5,17 +5,41 @@ import { api } from "../services/api";
 
 type PayMethod = "cod" | "paypal" | "card";
 
+type Address = {
+  fullName: string;
+  phone: string;
+  address1: string;
+  address2?: string;
+  city: string;
+  district: string;
+  postalCode: string;
+};
+
 export default function Cart() {
   const { items, changeQty, removeFromCart, clearCart } = useCart();
 
   // ✅ selection for calculating totals
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // ✅ Payment UI states
+  // ✅ Address + Payment UI states
+  const [showAddress, setShowAddress] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
+
   const [method, setMethod] = useState<PayMethod | null>(null);
   const [isPaying, setIsPaying] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
+
+  // ✅ Address fields
+  const [address, setAddress] = useState<Address>({
+    fullName: "",
+    phone: "",
+    address1: "",
+    address2: "",
+    city: "",
+    district: "",
+    postalCode: "",
+  });
+  const [addressConfirmed, setAddressConfirmed] = useState(false);
 
   // Card fields
   const [cardName, setCardName] = useState("");
@@ -60,18 +84,50 @@ export default function Cart() {
     else setSelectedIds(new Set(items.map((x) => x.cartItemId)));
   };
 
-  // ✅ When checkout clicked
+  // ✅ When checkout clicked → open ADDRESS first
   const onCheckout = () => {
     const token = localStorage.getItem("token");
 
-if (!token) {
-  alert("Please login to place an order.");
-  window.location.href = "/login";
-  return;
-}
+    if (!token) {
+      alert("Please login to place an order.");
+      window.location.href = "/login";
+      return;
+    }
     if (selectedIds.size === 0) return;
 
     setOrderConfirmed(false);
+
+    // reset steps
+    setShowPayment(false);
+    setMethod(null);
+
+    setShowAddress(true);
+    setAddressConfirmed(false);
+  };
+
+  // ✅ Address validation
+  const canContinueAddress = useMemo(() => {
+    if (!showAddress) return false;
+
+    const phoneOk = address.phone.trim().length >= 9; // simple check
+    const postalOk = address.postalCode.trim().length >= 4;
+
+    return (
+      address.fullName.trim().length >= 2 &&
+      phoneOk &&
+      address.address1.trim().length >= 4 &&
+      address.city.trim().length >= 2 &&
+      address.district.trim().length >= 2 &&
+      postalOk
+    );
+  }, [address, showAddress]);
+
+  const onContinueToPayment = () => {
+    if (!canContinueAddress) return;
+
+    setAddressConfirmed(true);
+    setShowAddress(false);
+
     setShowPayment(true);
     // keep current method if user already selected, else null
     if (!method) setMethod(null);
@@ -82,10 +138,12 @@ if (!token) {
     if (!showPayment || !method) return false;
     if (selectedIds.size === 0) return false;
 
+    // must have address first
+    if (!addressConfirmed) return false;
+
     if (method === "cod") return true;
 
     if (method === "paypal") {
-      // keep it simple - allow empty email too, or require email if you want:
       return paypalEmail.trim().length > 0;
     }
 
@@ -107,53 +165,80 @@ if (!token) {
     cardExp,
     cardCvv,
     paypalEmail,
+    addressConfirmed,
   ]);
 
- // ✅ Confirm order
-const onPay = async () => {
-  if (!canPay || !method) return;
+  // ✅ Confirm order
+  const onPay = async () => {
+    if (!canPay || !method) return;
 
-  setIsPaying(true);
-  setOrderConfirmed(false);
+    setIsPaying(true);
+    setOrderConfirmed(false);
 
-  try {
-    await api("/orders/checkout", {
-      method: "POST",
-      body: JSON.stringify({
-        items: selectedItems.map((x) => ({
-          productId: x.productId,
-          title: x.title,
-          price: x.price,
-          qty: x.qty,
-          img: x.image,
-          model: x.options.model,
-          color: x.options.color,
-        })),
-        total: selectedTotal,
-        paymentMethod: method,
-      }),
-    });
+    try {
+      await api("/orders/checkout", {
+        method: "POST",
+        body: JSON.stringify({
+          items: selectedItems.map((x) => ({
+            productId: x.productId,
+            title: x.title,
+            price: x.price,
+            qty: x.qty,
+            img: x.image,
+            model: x.options.model,
+            color: x.options.color,
+          })),
+          total: selectedTotal,
+          paymentMethod: method,
 
-    // remove selected items
-    selectedItems.forEach((x) => removeFromCart(x.cartItemId));
-    setSelectedIds(new Set());
+          // ✅ send address to backend (you can store later in DB)
+          address: {
+            fullName: address.fullName,
+            phone: address.phone,
+            address1: address.address1,
+            address2: address.address2,
+            city: address.city,
+            district: address.district,
+            postalCode: address.postalCode,
+          },
+        }),
+      });
 
-    setOrderConfirmed(true);
-    setShowPayment(false);
-    setMethod(null);
+      // remove selected items
+      selectedItems.forEach((x) => removeFromCart(x.cartItemId));
+      setSelectedIds(new Set());
 
-    // reset fields
-    setCardName("");
-    setCardNumber("");
-    setCardExp("");
-    setCardCvv("");
-    setPaypalEmail("");
-  } catch (e: any) {
-    alert(e.message || "Checkout failed");
-  } finally {
-    setIsPaying(false);
-  }
-};
+      setOrderConfirmed(true);
+
+      // close steps
+      setShowPayment(false);
+      setShowAddress(false);
+      setMethod(null);
+      setAddressConfirmed(false);
+
+      // reset fields
+      setAddress({
+        fullName: "",
+        phone: "",
+        address1: "",
+        address2: "",
+        city: "",
+        district: "",
+        postalCode: "",
+      });
+
+      setCardName("");
+      setCardNumber("");
+      setCardExp("");
+      setCardCvv("");
+      setPaypalEmail("");
+    } catch (e: any) {
+      alert(e.message || "Checkout failed");
+    } finally {
+      setIsPaying(false);
+    }
+  };
+
   const PaymentOptionCard = ({
     value,
     title,
@@ -184,9 +269,7 @@ const onPay = async () => {
               active ? "border-purple-600" : "border-gray-300"
             }`}
           >
-            {active ? (
-              <div className="h-2 w-2 rounded-full bg-purple-600" />
-            ) : null}
+            {active ? <div className="h-2 w-2 rounded-full bg-purple-600" /> : null}
           </div>
         </div>
       </button>
@@ -215,9 +298,11 @@ const onPay = async () => {
                 onClick={() => {
                   clearCart();
                   setSelectedIds(new Set());
+                  setShowAddress(false);
                   setShowPayment(false);
                   setMethod(null);
                   setOrderConfirmed(false);
+                  setAddressConfirmed(false);
                 }}
                 className="btn-clear"
               >
@@ -233,19 +318,13 @@ const onPay = async () => {
           )}
 
           {items.length === 0 ? (
-            <div className="mt-8 p-6 rounded-xl border bg-white">
-              Cart is empty.
-            </div>
+            <div className="mt-8 p-6 rounded-xl border bg-white">Cart is empty.</div>
           ) : (
             <div className="mt-6 grid md:grid-cols-3 gap-6">
               {/* Items */}
               <div className="md:col-span-2 space-y-4">
                 <div className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={allSelected}
-                    onChange={toggleAll}
-                  />
+                  <input type="checkbox" checked={allSelected} onChange={toggleAll} />
                   <span>Select all</span>
                 </div>
 
@@ -303,15 +382,12 @@ const onPay = async () => {
                           min={1}
                           max={99}
                           value={x.qty}
-                          onChange={(e) =>
-                            changeQty(x.cartItemId, Number(e.target.value))
-                          }
+                          onChange={(e) => changeQty(x.cartItemId, Number(e.target.value))}
                           className="w-20 border rounded-lg px-2 py-1"
                         />
 
                         <div className="ml-auto text-sm text-gray-700">
-                          Subtotal:{" "}
-                          <b>RS. {(x.price * x.qty).toLocaleString()}</b>
+                          Subtotal: <b>RS. {(x.price * x.qty).toLocaleString()}</b>
                         </div>
                       </div>
                     </div>
@@ -319,8 +395,9 @@ const onPay = async () => {
                 ))}
               </div>
 
-              {/* Summary + Payment */}
+              {/* Summary + Address + Payment */}
               <div className="space-y-4">
+                {/* Summary */}
                 <div className="bg-white border rounded-xl p-5 h-fit">
                   <h2 className="font-bold text-lg">Summary</h2>
                   <div className="mt-4 text-sm space-y-2">
@@ -347,7 +424,129 @@ const onPay = async () => {
                   </button>
                 </div>
 
-                {/* Payment Section (Below Checkout) */}
+                {/* ✅ ADDRESS SECTION (Before Payment) */}
+                {showAddress && (
+                  <div className="bg-white border rounded-xl p-5">
+                    <h3 className="font-bold text-lg">Delivery Address</h3>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Enter your address details to continue payment.
+                    </p>
+
+                    <div className="mt-4 grid grid-cols-1 gap-3">
+                      <div>
+                        <label className="text-sm font-medium">Full Name</label>
+                        <input
+                          value={address.fullName}
+                          onChange={(e) =>
+                            setAddress((p) => ({ ...p, fullName: e.target.value }))
+                          }
+                          placeholder="Your name"
+                          className="mt-2 w-full border rounded-lg px-3 py-2 text-sm"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium">Phone</label>
+                        <input
+                          value={address.phone}
+                          onChange={(e) =>
+                            setAddress((p) => ({ ...p, phone: e.target.value }))
+                          }
+                          placeholder="07XXXXXXXX"
+                          className="mt-2 w-full border rounded-lg px-3 py-2 text-sm"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium">Address Line 1</label>
+                        <input
+                          value={address.address1}
+                          onChange={(e) =>
+                            setAddress((p) => ({ ...p, address1: e.target.value }))
+                          }
+                          placeholder="House no, street, area"
+                          className="mt-2 w-full border rounded-lg px-3 py-2 text-sm"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium">Address Line 2 (optional)</label>
+                        <input
+                          value={address.address2 || ""}
+                          onChange={(e) =>
+                            setAddress((p) => ({ ...p, address2: e.target.value }))
+                          }
+                          placeholder="Apartment, landmark"
+                          className="mt-2 w-full border rounded-lg px-3 py-2 text-sm"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-sm font-medium">City</label>
+                          <input
+                            value={address.city}
+                            onChange={(e) =>
+                              setAddress((p) => ({ ...p, city: e.target.value }))
+                            }
+                            placeholder="City"
+                            className="mt-2 w-full border rounded-lg px-3 py-2 text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-medium">District</label>
+                          <input
+                            value={address.district}
+                            onChange={(e) =>
+                              setAddress((p) => ({ ...p, district: e.target.value }))
+                            }
+                            placeholder="District"
+                            className="mt-2 w-full border rounded-lg px-3 py-2 text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium">Postal Code</label>
+                        <input
+                          value={address.postalCode}
+                          onChange={(e) =>
+                            setAddress((p) => ({ ...p, postalCode: e.target.value }))
+                          }
+                          placeholder="Postal code"
+                          className="mt-2 w-full border rounded-lg px-3 py-2 text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={!canContinueAddress}
+                      onClick={onContinueToPayment}
+                      className={`mt-5 w-full py-2 rounded-lg text-sm font-medium transition ${
+                        !canContinueAddress
+                          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          : "bg-black text-white hover:opacity-90"
+                      }`}
+                    >
+                      Continue to Payment
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddress(false);
+                        setAddressConfirmed(false);
+                      }}
+                      className="mt-3 w-full py-2 rounded-lg text-sm font-medium border hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+
+                {/* Payment Section (After Address) */}
                 {showPayment && (
                   <div className="bg-white border rounded-xl p-5">
                     <h3 className="font-bold text-lg">Payment</h3>
@@ -376,9 +575,7 @@ const onPay = async () => {
                     {/* Conditional Forms */}
                     {method === "paypal" && (
                       <div className="mt-4">
-                        <label className="text-sm font-medium">
-                          PayPal Email
-                        </label>
+                        <label className="text-sm font-medium">PayPal Email</label>
                         <input
                           value={paypalEmail}
                           onChange={(e) => setPaypalEmail(e.target.value)}
@@ -391,9 +588,7 @@ const onPay = async () => {
                     {method === "card" && (
                       <div className="mt-4 grid grid-cols-1 gap-3">
                         <div>
-                          <label className="text-sm font-medium">
-                            Cardholder Name
-                          </label>
+                          <label className="text-sm font-medium">Cardholder Name</label>
                           <input
                             value={cardName}
                             onChange={(e) => setCardName(e.target.value)}
@@ -403,9 +598,7 @@ const onPay = async () => {
                         </div>
 
                         <div>
-                          <label className="text-sm font-medium">
-                            Card Number
-                          </label>
+                          <label className="text-sm font-medium">Card Number</label>
                           <input
                             value={cardNumber}
                             onChange={(e) => setCardNumber(e.target.value)}
@@ -416,9 +609,7 @@ const onPay = async () => {
 
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="text-sm font-medium">
-                              Expiry (MM/YY)
-                            </label>
+                            <label className="text-sm font-medium">Expiry (MM/YY)</label>
                             <input
                               value={cardExp}
                               onChange={(e) => setCardExp(e.target.value)}
@@ -458,10 +649,14 @@ const onPay = async () => {
                       onClick={() => {
                         setShowPayment(false);
                         setMethod(null);
+
+                        // go back to address step
+                        setShowAddress(true);
+                        setAddressConfirmed(false);
                       }}
                       className="mt-3 w-full py-2 rounded-lg text-sm font-medium border hover:bg-gray-50"
                     >
-                      Cancel
+                      Back to Address
                     </button>
                   </div>
                 )}

@@ -23,7 +23,7 @@ export default function ProductCard({
 }: Props) {
   const [index, setIndex] = useState(0);
 
-  // ✅ require selection
+  //  require selection
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedModel, setSelectedModel] = useState<string>("");
 
@@ -90,7 +90,7 @@ export default function ProductCard({
           RS. {price.toLocaleString()}
         </p>
 
-        {/* ✅ COLOR SELECT */}
+        {/*  COLOR SELECT */}
         <div className="flex gap-2 mt-3 items-center">
           <span className="text-xs text-gray-500">Color:</span>
           {colors.map((c) => (
@@ -109,7 +109,7 @@ export default function ProductCard({
           ))}
         </div>
 
-        {/* ✅ MODEL SELECT (only if models exist) */}
+        {/*  MODEL SELECT (only if models exist) */}
         {needsModel && (
           <div className="mt-3">
             <label className="text-xs text-gray-500">Model:</label>
@@ -129,7 +129,7 @@ export default function ProductCard({
           </div>
         )}
 
-        {/* ✅ ADD TO CART */}
+        {/*  ADD TO CART */}
         <button
           onClick={handleAddToCart}
           disabled={!canAdd}

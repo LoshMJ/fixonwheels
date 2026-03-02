@@ -21,7 +21,7 @@ function getToken() {
   }
 }
 
-// ✅ Fix images saved like "/uploads/xxx.jpg"
+//  Fix images saved like "/uploads/xxx.jpg"
 export function resolveImgUrl(img: string) {
   if (!img) return "https://via.placeholder.com/600x400?text=No+Image";
   if (img.startsWith("http://") || img.startsWith("https://")) return img;
@@ -32,7 +32,7 @@ export function resolveImgUrl(img: string) {
 export async function api<T = any>(path: string, options: RequestInit = {}) {
   const token = getToken();
 
-  // ✅ If body is FormData, DO NOT set Content-Type.
+  //  If body is FormData, DO NOT set Content-Type.
   const isFormData =
     typeof FormData !== "undefined" && options.body instanceof FormData;
 

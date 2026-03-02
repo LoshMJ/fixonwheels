@@ -1,45 +1,48 @@
 import { useState } from "react";
 import ShopCard from "../ui/ShopCard";
-import GradientButton from "../ui/GradientButton";
-import shopbg1 from "../../assets/shop1/add1.png";
-import shopbg3 from "../../assets/shop1/add2.png";
-import shopbg2 from "../../assets/shop1/add3.png";
+import { useNavigate } from "react-router-dom";
 
 const shopItems = [
   {
     id: 1,
     title: "Mobiles",
-    img: "/src/assets/astronaut.png",
+    img: "/src/assets/phones/i17Pro.png",
     bg: "/src/assets/shop1/add1.png",
+    path: "../categories/mobiles",
   },
   {
     id: 2,
-    title: "Accessories",
-    img: "/src/assets/shop/accessories.jpg",
+    title: "Laptops",
+    img: "/src/assets/mac.avif",
     bg: "/src/assets/shop1/add3.png",
+     path: "/categories/cases",
   },
   {
     id: 3,
-    title: "Displays",
-    img: "/src/assets/shop/display.jpg",
+    title: "Chargers",
+    img: "/src/assets/applecharge.jpg",
     bg: "/src/assets/shop1/add2.png",
+    path: "/categories/chargers",
   },
   {
     id: 4,
-    title: "Tablets",
-    img: "/src/assets/astronaut.png",
+    title: "Displays",
+    img: "/src/assets/delldisplay.jpg",
     bg: "/src/assets/galaxy-bg.jpg",
+    path: "/categories/displays",
   },
   {
     id: 5,
-    title: "Wearables",
-    img: "/src/assets/astronaut.png",
+    title: "Headsets & Earbuds",
+    img: "/src/assets/sonyearbuds.jpg",
     bg: "/src/assets/galaxy-bg.jpg",
+    path: "/categories/headsets",
   },
 ];
 
 export default function ShopSection() {
   const [active, setActive] = useState(shopItems[0]);
+  const navigate = useNavigate();
 
   return (
     <section
@@ -48,8 +51,6 @@ export default function ShopSection() {
     >
       {/* Overlay */}
       <div className="absolute inset-0" />
-
-      
 
       {/* ================= CARDS ================= */}
       <div className="absolute bottom-12 item-center z-10 px-60">
@@ -60,7 +61,10 @@ export default function ShopSection() {
               item={item}
               active={active.id === item.id}
               onHover={() => setActive(item)}
-              onClick={() => setActive(item)}
+              onClick={() => {setActive(item);
+                navigate(item.path);
+              }
+              }
             />
           ))}
         </div>

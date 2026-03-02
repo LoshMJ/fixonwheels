@@ -1,35 +1,40 @@
 import { useRef, useState, useEffect } from "react";
+import i17ProMax from "../../assets/phones/i17ProMax.png";
+import applecharger from "../../assets/applecharge.jpg";
+import sonyearbuds from "../../assets/sonyearbuds.jpg";
+import iphone13pro from "../../assets/iphone13pro.webp";
+import i10 from "../../assets/phones/i10.png";
 
 const items = [
   {
     id: 1,
-    image: "/src/assets/i17ProMax.png",
+    image: i17ProMax,
     title: "i17 Pro Max",
     desc: "Latest flagship phone",
   },
   {
     id: 2,
-    image: "/src/assets/astronaut.png",
-    title: "Space Case",
-    desc: "Premium phone cover",
+    image: applecharger,
+    title: "Apple MagSafe Wireless Charger",
+    desc: "Wireless",
   },
   {
     id: 3,
-    image: "/src/assets/galaxy-bg.jpg",
-    title: "Galaxy Display",
-    desc: "OLED replacement",
+    image: sonyearbuds,
+    title: "Sony WF-C500 True Wireless Earbuds",
+    desc: "Top Rated",
   },
   {
     id: 4,
-    image: "/src/assets/repair-intro-bg.jpg",
-    title: "Fast Charger",
-    desc: "65W super fast",
+    image: iphone13pro,
+    title: "iPhone 13 Pro (256GB)",
+    desc: "Premium",
   },
   {
-    id: 3,
-    image: "/src/assets/galaxy-bg.jpg",
-    title: "Galaxy Display",
-    desc: "OLED replacement",
+    id: 5,
+    image: i10,
+    title: "iPhone 10",
+    desc: "Classic model",
   },
 ];
 

@@ -2,6 +2,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import GlowButton from "../components/ui/GlowButton";
+import { getSession, clearSession } from "../utils/auth";
+import { useState, useEffect } from "react";
 
 function getUser() {
   const raw = localStorage.getItem("user");
@@ -12,23 +14,28 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { items } = useCart();
+  const [session, setSession] = useState(getSession());
+
+  // Update session when component loads
+  useEffect(() => {
+    setSession(getSession());
+  }, []);
 
   const user = getUser();
 
   // Check if current page is Cart
   const isCartPage = location.pathname === "/cart";
 
-  const onLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/", { replace: true });
+  const handleLogout = () => {
+    clearSession();
+    setSession(null);
+    navigate("/");
   };
 
   return (
     <header
       className={`fixed top-0 left-0 w-full z-50 border-b border-white/10
-      ${isCartPage ? "bg-black" : ""}
-      `}
+      ${isCartPage ? "bg-black" : ""}`}
     >
       <nav className="max-w-[1500px] mx-auto grid grid-cols-3 items-center px-12 py-5">
         {/* LEFT — Logo */}
@@ -60,10 +67,7 @@ export default function Navbar() {
             Chats
           </Link>
 
-          <Link
-            to="/cart"
-            className="hover:text-purple-400 transition relative"
-          >
+          <Link to="/cart" className="hover:text-purple-400 transition relative">
             <ShoppingCart size={24} />
             {items.length > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-500 text-xs text-white rounded-full px-1.5">
@@ -72,42 +76,39 @@ export default function Navbar() {
             )}
           </Link>
 
-          {/* ✅ Admin Panel link only if admin */}
+          {/*  Admin Panel link only if admin */}
           {user?.role === "admin" && (
             <Link
               to="/admin"
-              className="px-3 py-1 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 transition"
-            >
-              Admin Panel
+className="
+px-4 py-5.5 rounded-lg text-white font-semibold
+bg-white/1 border border-white/20
+hover:bg-gradient-to-r hover:from-purple-500 hover:via-pink-500 hover:to-indigo-500
+bg-[length:200%_200%] hover:bg-right
+transition-all duration-500
+"            >
+              AdminPanel
             </Link>
           )}
         </div>
 
-        {/* RIGHT — Login / Logout */}
-        <div className="flex justify-end">
-          {!user ? (
+        {/* RIGHT — Dynamic Login/Profile */}
+        <div className="flex justify-end gap-3">
+          {session ? (
+            <>
+              <GlowButton className="w-28 h-12 mt-1">
+                <Link to="/profile" className="flex justify-center items-center w-full h-full">
+                  PROFILE
+                </Link>
+              </GlowButton>
+
+            </>
+          ) : (
             <GlowButton className="w-23 h-12 mt-1">
-              <Link to="/login" className="w-10 h-15 flex justify-center">
+              <Link to="/login" className="flex justify-center items-center w-full h-full">
                 LOGIN
               </Link>
             </GlowButton>
-          ) : (
-            <div className="flex items-center gap-3">
-              {/* small role badge */}
-              <span className="hidden md:inline text-xs px-3 py-1 rounded-full bg-white/10 border border-white/10">
-                {user.email}
-              </span>
-
-              <GlowButton className="w-23 h-12 mt-1">
-                <button
-                  type="button"
-                  onClick={onLogout}
-                  className="w-10 h-15 flex justify-center"
-                >
-                  LOGOUT
-                </button>
-              </GlowButton>
-            </div>
           )}
         </div>
       </nav>

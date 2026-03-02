@@ -1,28 +1,44 @@
 import express from "express";
+import http from "http";
 import cors from "cors";
 import dotenv from "dotenv";
-import { connectDB } from "./config/db";
+import { Server } from "socket.io";
+import path from "path";
+
+import repairRoutes from "./routes/repair.routes";
+import authRoutes from "./routes/auth.routes";
 import publicRoutes from "./routes/public";
 import adminRoutes from "./routes/admin";
-import authRoutes from "./routes/auth.routes";
-import { seedAdmin } from "./seed/seedAdmin";
 import orderRoutes from "./routes/order.routes";
-import path from "path";
+
+import { connectDB } from "./config/db";
+import { seedAdmin } from "./seed/seedAdmin";
+import { setupSocket, setIO } from "./socket";
 
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
 
-//upload image
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+/* ================= GLOBAL MIDDLEWARE ================= */
 
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
-// Middlewares
-app.use(cors());
 app.use(express.json());
 
+/* ================= STATIC FILES ================= */
 
-// Health route (always keep)
+// Serve uploaded images
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+/* ================= BASIC ROUTES ================= */
+
+// Health route
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok", service: "backend" });
 });
@@ -32,27 +48,45 @@ app.get("/", (_req, res) => {
   res.send("FixOnWheels backend running 🚀");
 });
 
-// Routes
+/* ================= SOCKET.IO ================= */
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+// Make io globally available
+setIO(io);
+setupSocket(io);
+
+/* ================= API ROUTES ================= */
+
 app.use("/api", publicRoutes);
-app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/repairs", repairRoutes);
+app.use("/api/admin", adminRoutes);
+
+/* ================= START SERVER ================= */
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
 
 (async () => {
   try {
     await connectDB();
+    console.log("✅ MongoDB connected");
 
-    // ✅ create admin after DB is connected
     await seedAdmin();
 
-    app.listen(PORT, () => {
-      console.log(` Server running on http://localhost:${PORT}`);
-      console.log(` Health check: http://localhost:${PORT}/health`);
+    server.listen(PORT, () => {
+      console.log(`🚀 Server running at http://localhost:${PORT}`);
+      console.log(`Health: http://localhost:${PORT}/health`);
     });
   } catch (err) {
-    console.error(" Server failed to start:", err);
+    console.error("❌ Server failed to start:", err);
     process.exit(1);
   }
 })();

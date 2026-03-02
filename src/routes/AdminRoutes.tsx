@@ -11,8 +11,8 @@ export default function AdminRoutes() {
   const { token, user } = getAuth();
   const location = useLocation();
 
-  // not logged in -> admin login
-  if (!token) return <Navigate to="/admin/login" replace state={{ from: location }} />;
+  // ✅ not logged in -> go public home (NOT admin login)
+  if (!token) return <Navigate to="/" replace state={{ from: location }} />;
 
   // logged in but not admin -> home
   if (user?.role !== "admin") return <Navigate to="/" replace />;

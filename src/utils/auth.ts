@@ -61,7 +61,9 @@ export function getSession(): AuthSession | null {
     return null;
   }
 }
-
+export const logout = () => {
+  localStorage.removeItem("session");
+};
 export function clearSession() {
   // ✅ clear everything
   localStorage.removeItem(KEY);

@@ -1,53 +1,82 @@
-// src/controllers/auth.controller.ts
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { User } from "../models/User";
 
-function signToken(payload: { userId: string; role: string }) {
+/* ==============================
+   TYPES
+============================== */
+
+type UserRole = "customer" | "technician" | "admin";
+
+interface JwtPayload {
+  userId: string;
+  role: UserRole;
+}
+
+/* ==============================
+   JWT HELPER
+============================== */
+
+function signToken(payload: JwtPayload): string {
   const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error("JWT_SECRET missing in .env");
+  if (!secret) {
+    throw new Error("JWT_SECRET is missing in environment variables");
+  }
+
   return jwt.sign(payload, secret, { expiresIn: "7d" });
 }
+
+/* ==============================
+   REGISTER
+============================== */
 
 export async function register(req: Request, res: Response) {
   try {
     const { name, email, password, role } = req.body ?? {};
 
-    if (!name || !email || !password || !role) {
+    if (!name?.trim() || !email?.trim() || !password?.trim() || !role) {
       return res.status(400).json({
-        message: "Missing fields",
-        required: ["name", "email", "password", "role"],
+        message: "All fields are required",
       });
     }
 
-    // only customer/technician can register publicly
-    if (role !== "customer" && role !== "technician") {
-      return res.status(400).json({ message: "Invalid role" });
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const allowedRoles: UserRole[] = ["customer", "technician"];
+
+    if (!allowedRoles.includes(role as UserRole)) {
+      return res.status(400).json({
+        message: "Invalid role. Must be 'customer' or 'technician'",
+      });
     }
 
-    const exists = await User.findOne({ email });
-    if (exists) return res.status(409).json({ message: "Email already registered" });
+    const existing = await User.findOne({ email: normalizedEmail });
+    if (existing) {
+      return res.status(409).json({
+        message: "Email already registered",
+      });
+    }
 
-    const hashed = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password.trim(), 10);
 
-    // ✅ technician starts as pending
+    // Technician accounts require admin approval
     const technicianStatus = role === "technician" ? "pending" : "approved";
 
     const user = await User.create({
-      name,
-      email,
-      password: hashed,
-      role,
+      name: name.trim(),
+      email: normalizedEmail,
+      password: hashedPassword,
+      role: role as UserRole,
       technicianStatus,
     });
 
-    // ✅ If technician: do NOT give token (must wait for admin approval)
+    // Technicians → no token yet, just success message
     if (role === "technician") {
       return res.status(201).json({
         message: "Registered successfully. Waiting for admin approval.",
         user: {
-          id: user._id,
+          id: user._id.toString(),
           name: user.name,
           email: user.email,
           role: user.role,
@@ -56,43 +85,66 @@ export async function register(req: Request, res: Response) {
       });
     }
 
-    // ✅ customers can login immediately
-    const token = signToken({ userId: user._id.toString(), role: user.role });
+    // Customers → immediate login token
+    const token = signToken({
+      userId: user._id.toString(),
+      role: user.role as UserRole,
+    });
 
     return res.status(201).json({
       message: "Registered successfully",
       token,
       user: {
-        id: user._id,
+        id: user._id.toString(),
         name: user.name,
         email: user.email,
         role: user.role,
       },
     });
   } catch (err: any) {
-    console.error("register error:", err);
-    return res.status(500).json({ message: "Server error" });
+    console.error("[REGISTER ERROR]", err.message || err);
+    return res.status(500).json({
+      message: "Server error during registration",
+    });
   }
 }
+
+/* ==============================
+   LOGIN
+============================== */
 
 export async function login(req: Request, res: Response) {
   try {
     const { email, password } = req.body ?? {};
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+    if (!email?.trim() || !password?.trim()) {
+      return res.status(400).json({
+        message: "Email and password are required",
+      });
     }
 
-    // ✅ IMPORTANT: force-select password
-    const user = await User.findOne({ email }).select("+password");
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+    const normalizedEmail = email.trim().toLowerCase();
 
-    if (!user.password) {
-      console.error("login error: password not returned from DB (select:false issue)");
-      return res.status(500).json({ message: "Server error" });
+    // Explicitly select password (in case schema has select: false)
+    const user = await User.findOne({
+      email: normalizedEmail,
+    }).select("+password");
+
+    if (!user) {
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
     }
 
-    // ✅ Block technician login until approved
+    const passwordMatch = await bcrypt.compare(password.trim(), user.password);
+
+    if (!passwordMatch) {
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    // Block unapproved / rejected technicians
     if (user.role === "technician") {
       const status = user.technicianStatus || "pending";
 
@@ -109,24 +161,26 @@ export async function login(req: Request, res: Response) {
       }
     }
 
-    const ok = await bcrypt.compare(password, user.password);
-    if (!ok) return res.status(401).json({ message: "Invalid credentials" });
-
-    const token = signToken({ userId: user._id.toString(), role: user.role });
+    const token = signToken({
+      userId: user._id.toString(),
+      role: user.role as UserRole,
+    });
 
     return res.status(200).json({
       message: "Login successful",
       token,
       user: {
-        id: user._id,
+        id: user._id.toString(),
         name: user.name,
         email: user.email,
         role: user.role,
-        technicianStatus: user.role === "technician" ? user.technicianStatus : undefined,
+        ...(user.role === "technician" && { technicianStatus: user.technicianStatus }),
       },
     });
   } catch (err: any) {
-    console.error("login error:", err);
-    return res.status(500).json({ message: "Server error" });
+    console.error("[LOGIN ERROR]", err.message || err);
+    return res.status(500).json({
+      message: "Server error during login",
+    });
   }
 }

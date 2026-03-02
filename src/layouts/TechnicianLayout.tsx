@@ -1,50 +1,107 @@
-import { Outlet, NavLink } from "react-router-dom";
-import { getSession } from "../utils/auth";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import galaxyBg from "../assets/galaxy-bg.jpg";
+import astronaut from "../assets/astronaut.png";
 
-export default function TechnicianLayout() {
-  const session = getSession();
+const TechnicianLayout = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isActive = (path: string) =>
+    location.pathname.includes(path);
 
   return (
-    <div className="min-h-screen flex bg-slate-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r p-6">
-        <h1 className="text-lg font-semibold mb-1">
-          Technician Portal
-        </h1>
-        <p className="text-xs text-slate-500 mb-8">
-          {session?.user.name}
-        </p>
-
-        <nav className="space-y-3">
-          <NavItem to="/technician" label="Home" />
-          <NavItem to="/technician/incoming" label="Incoming Repairs" />
-          <NavItem to="/technician/active" label="Active Repair" />
-          <NavItem to="/technician/history" label="History" />
-          <NavItem to="/technician/profile" label="Profile" />
-        </nav>
-      </aside>
-
-      {/* Page Content */}
-      <main className="flex-1 p-10">
-        <Outlet />
-      </main>
-    </div>
-  );
-}
-
-function NavItem({ to, label }: { to: string; label: string }) {
-  return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `block px-4 py-2 rounded-lg text-sm ${
-          isActive
-            ? "bg-slate-800 text-white"
-            : "text-slate-600 hover:bg-slate-200"
-        }`
-      }
+    <section
+      className="relative min-h-screen w-full flex items-center justify-center overflow-hidden text-white"
+      style={{
+        backgroundImage: `url(${galaxyBg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
     >
-      {label}
-    </NavLink>
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+      {/* Astronaut */}
+      <img
+        src={astronaut}
+        className="absolute right-[4%] top-[15%] w-[240px] opacity-90 animate-float-rotate drop-shadow-[0_0_40px_rgba(255,140,105,0.5)] pointer-events-none z-[2]"
+      />
+
+      {/* MAIN GLASS PANEL */}
+      <div className="relative z-[5] w-full max-w-7xl mx-auto bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-[0_0_120px_rgba(255,140,105,0.35)]">
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+
+          {/* LEFT PANEL (NOW GLOBAL) */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+
+            <h2 className="text-xl font-semibold text-rose-300">
+              Technician Portal
+            </h2>
+
+            <SidebarBtn
+              label="Dashboard"
+              active={location.pathname === "/technician"}
+              onClick={() => navigate("/technician")}
+            />
+            <SidebarBtn
+              label="Incoming"
+              active={isActive("incoming")}
+              onClick={() => navigate("/technician/incoming")}
+            />
+            <SidebarBtn
+              label="Active"
+              active={isActive("active")}
+              onClick={() => navigate("/technician/active")}
+            />
+            <SidebarBtn
+              label="History"
+              active={isActive("history")}
+              onClick={() => navigate("/technician/history")}
+            />
+            <SidebarBtn
+              label="Payments"
+              active={isActive("payments")}
+              onClick={() => navigate("/technician/payments")}
+            />
+            <SidebarBtn
+              label="Profile"
+              active={isActive("profile")}
+              onClick={() => navigate("/technician/profile")}
+            />
+
+          </div>
+
+          {/* RIGHT CONTENT */}
+          <div className="md:col-span-3">
+            <Outlet />
+          </div>
+
+        </div>
+      </div>
+    </section>
   );
-}
+};
+
+const SidebarBtn = ({
+  label,
+  onClick,
+  active,
+}: {
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+}) => (
+  <button
+    onClick={onClick}
+    className={`w-full text-left px-4 py-3 rounded-xl transition ${
+      active
+        ? "bg-gradient-to-r from-rose-400 to-orange-300 text-black font-medium shadow-[0_0_20px_rgba(255,140,105,0.6)]"
+        : "bg-black/30 hover:bg-rose-500/20 border border-white/10 text-gray-300"
+    }`}
+  >
+    {label}
+  </button>
+);
+
+export default TechnicianLayout;

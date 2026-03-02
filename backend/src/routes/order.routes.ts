@@ -1,62 +1,47 @@
 import { Router } from "express";
-import mongoose from "mongoose";
 import { requireAuth, requireRole, AuthRequest } from "../middleware/auth.middleware";
 import { Order } from "../models/Order";
-import Product from "../models/Product"; // ✅ make sure this path matches your Product model file
 
 const router = Router();
 
-/* ✅ ADD THIS ROUTE (BEST SELLERS)
-   GET /api/orders/best-sellers?limit=10
-   - returns top products based on order items qty
-*/
+// ✅ PUBLIC: Best seller products (most bought)
 router.get("/best-sellers", async (req, res) => {
   try {
-    const limit = Math.min(20, Math.max(1, Number(req.query.limit || 10)));
+    const limitRaw = String(req.query.limit || "10");
+    const limit = Math.max(1, Math.min(50, parseInt(limitRaw, 10) || 10));
 
-    const agg = await Order.aggregate([
-      { $match: { isDeleted: false } },
-      { $unwind: "$items" },
+    const best = await Order.aggregate([
+      // only valid orders
       {
-        $group: {
-          _id: "$items.productId",       // productId stored inside Order items
-          soldCount: { $sum: "$items.qty" },
+        $match: {
+          isDeleted: false,
+          status: { $nin: ["cancelled", "refunded"] },
         },
       },
+
+      // items breakdown
+      { $unwind: "$items" },
+
+      // group by productId
+      {
+        $group: {
+          _id: "$items.productId",
+          soldCount: { $sum: "$items.qty" },
+
+          // keep some display fields from order item
+          title: { $first: "$items.title" },
+          price: { $first: "$items.price" },
+          img: { $first: "$items.img" },
+        },
+      },
+
+      // sort high -> low
       { $sort: { soldCount: -1 } },
+
       { $limit: limit },
     ]);
 
-    if (!agg.length) return res.json([]);
-
-    // Convert productId strings -> ObjectId for Product lookup
-    const ids = agg
-      .map((x) => x._id)
-      .filter((id) => mongoose.Types.ObjectId.isValid(id))
-      .map((id) => new mongoose.Types.ObjectId(id));
-
-    const products = await Product.find({ _id: { $in: ids } }).select(
-      "_id title price img"
-    );
-
-    const map = new Map(products.map((p: any) => [p._id.toString(), p]));
-
-    const result = agg
-      .map((x) => {
-        const p = map.get(String(x._id));
-        if (!p) return null;
-
-        return {
-          _id: p._id.toString(),
-          title: p.title,
-          price: p.price,
-          img: p.img,
-          soldCount: x.soldCount,
-        };
-      })
-      .filter(Boolean);
-
-    return res.json(result);
+    return res.json(best);
   } catch (err: any) {
     console.error("best-sellers error:", err);
     return res.status(500).json({ message: "Failed to load best sellers" });

@@ -118,7 +118,7 @@ export default function AdminShopCategories() {
     setExistingImg("");
   };
 
-  // ✅ load from ADMIN endpoint (always up-to-date)
+  //  load from ADMIN endpoint (always up-to-date)
   const load = async () => {
     setLoading(true);
     setMsg("");
@@ -192,10 +192,10 @@ export default function AdminShopCategories() {
 
       if (editingId) {
         await api(`/admin/products/${editingId}`, { method: "PUT", body: fd });
-        setMsg("✅ Product updated");
+        setMsg(" Product updated");
       } else {
         await api("/admin/products", { method: "POST", body: fd });
-        setMsg("✅ Product added");
+        setMsg(" Product added");
       }
 
       resetForm();
@@ -212,7 +212,7 @@ export default function AdminShopCategories() {
     setMsg("");
     try {
       await api(`/admin/products/${id}`, { method: "DELETE" });
-      setMsg("✅ Deleted");
+      setMsg(" Deleted");
       await load();
     } catch (e: any) {
       setMsg(e?.message || "Delete failed");
@@ -230,9 +230,7 @@ export default function AdminShopCategories() {
               <h1 className="text-3xl font-extrabold">Shop Categories</h1>
               <p className="text-white/60 mt-1">Add products per category (used in “See more” pages)</p>
             </div>
-            <button onClick={load} className="rounded-xl bg-white text-black px-4 py-2 text-sm font-semibold hover:opacity-90">
-              Refresh
-            </button>
+          
           </div>
 
           {msg && (

@@ -2,7 +2,6 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export type UserRole = "customer" | "technician" | "admin";
 export type TechnicianStatus = "pending" | "approved" | "rejected";
-
 export interface IUser extends Document {
   name: string;
   email: string;
@@ -18,8 +17,8 @@ export interface IUser extends Document {
 
   createdAt: Date;
   updatedAt: Date;
+  profileImage?: string;
 }
-
 const userSchema = new Schema<IUser>(
   {
     name: { type: String, required: true, trim: true },
@@ -38,6 +37,11 @@ const userSchema = new Schema<IUser>(
       type: String,
       enum: ["pending", "approved", "rejected"],
       default: "approved", // customers/admin treated as approved
+    },
+
+    profileImage: {
+      type: String,
+      default: null,
     },
   },
   { timestamps: true }
