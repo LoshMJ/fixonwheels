@@ -16,11 +16,14 @@ import { seedAdmin } from "./seed/seedAdmin";
 import { setupSocket, setIO } from "./socket";
 
 dotenv.config();
-
+// Force Node.js to use reliable public DNS (Google or Cloudflare)
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '8.8.4.4']);     
+// or Cloudflare: ['1.1.1.1', '1.0.0.1']
 const app = express();
 const server = http.createServer(app);
 
-/* ================= GLOBAL MIDDLEWARE ================= */
+/* GLOBAL MIDDLEWARE */
 
 app.use(
   cors({
@@ -31,12 +34,12 @@ app.use(
 
 app.use(express.json());
 
-/* ================= STATIC FILES ================= */
+/* STATIC FILES */
 
 // Serve uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-/* ================= BASIC ROUTES ================= */
+/* BASIC ROUTES */
 
 // Health route
 app.get("/health", (_req, res) => {
@@ -48,7 +51,7 @@ app.get("/", (_req, res) => {
   res.send("FixOnWheels backend running 🚀");
 });
 
-/* ================= SOCKET.IO ================= */
+/*  SOCKET.IO  */
 
 const io = new Server(server, {
   cors: {
@@ -62,7 +65,7 @@ const io = new Server(server, {
 setIO(io);
 setupSocket(io);
 
-/* ================= API ROUTES ================= */
+/* API ROUTES */
 
 app.use("/api", publicRoutes);
 app.use("/api/auth", authRoutes);
@@ -70,14 +73,14 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/repairs", repairRoutes);
 app.use("/api/admin", adminRoutes);
 
-/* ================= START SERVER ================= */
+/* START SERVER  */
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
 
 (async () => {
   try {
     await connectDB();
-    console.log("✅ MongoDB connected");
+    console.log(" MongoDB connected");
 
     await seedAdmin();
 
@@ -86,7 +89,7 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
       console.log(`Health: http://localhost:${PORT}/health`);
     });
   } catch (err) {
-    console.error("❌ Server failed to start:", err);
+    console.error(" Server failed to start:", err);
     process.exit(1);
   }
 })();

@@ -4,7 +4,7 @@ import { Order } from "../models/Order";
 
 const router = Router();
 
-// ✅ PUBLIC: Best seller products (most bought)
+//  PUBLIC: Best seller products (most bought)
 router.get("/best-sellers", async (req, res) => {
   try {
     const limitRaw = String(req.query.limit || "10");
@@ -48,7 +48,7 @@ router.get("/best-sellers", async (req, res) => {
   }
 });
 
-// ✅ Only customers can place orders (recommended)
+//  Only customers can place orders (recommended)
 router.post(
   "/checkout",
   requireAuth,
@@ -88,7 +88,7 @@ router.post(
   }
 );
 
-// ✅ user order history page needs this
+// user order history page needs this
 router.get("/my", requireAuth, async (req: AuthRequest, res) => {
   try {
     const orders = await Order.find({ user: req.user!.userId, isDeleted: false }).sort({

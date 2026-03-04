@@ -19,7 +19,7 @@ export function createMailer() {
 export async function sendOrderCompletedEmail(to: string, orderId: string) {
   const transporter = createMailer();
   if (!transporter) {
-    console.log("📧 SMTP not configured. Skipping email.");
+    console.log(" SMTP not configured. Skipping email.");
     return;
   }
 
@@ -27,7 +27,7 @@ export async function sendOrderCompletedEmail(to: string, orderId: string) {
   await transporter.sendMail({
     from,
     to,
-    subject: "Your FixOnWheels order is completed ✅",
+    subject: "Your FixOnWheels order is completed ",
     text: `Your order ${orderId} has been completed. Thank you for shopping with FixOnWheels!`,
   });
 }

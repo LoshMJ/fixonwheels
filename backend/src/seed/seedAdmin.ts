@@ -11,16 +11,16 @@ export async function seedAdmin() {
     const existingAdmin = await User.findOne({ email: ADMIN_EMAIL });
 
     if (existingAdmin) {
-      // ✅ Update existing admin password 
+      // Update existing admin password 
       existingAdmin.password = hashed;
       existingAdmin.role = "admin"; 
       await existingAdmin.save();
 
-      console.log("✅ Admin password updated:", ADMIN_EMAIL);
+      console.log(" Admin password updated:", ADMIN_EMAIL);
       return;
     }
 
-    // ✅ Create admin if not exists
+    // Create admin if not exists
     await User.create({
       name: "Admin",
       email: ADMIN_EMAIL,
@@ -28,8 +28,8 @@ export async function seedAdmin() {
       role: "admin",
     });
 
-    console.log("✅ Admin created:", ADMIN_EMAIL);
+    console.log(" Admin created:", ADMIN_EMAIL);
   } catch (err: any) {
-    console.error("❌ seedAdmin error:", err?.message || err);
+    console.error(" seedAdmin error:", err?.message || err);
   }
 }

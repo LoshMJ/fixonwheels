@@ -2,8 +2,8 @@ import { Router } from "express";
 
 import { User } from "../models/User";
 import { Order } from "../models/Order";
-import { Repair } from "../models/Repair";      // ← fixed & clean
-import Product from "../models/Product";        // ← if this one uses default export
+import { Repair } from "../models/Repair";      
+import Product from "../models/Product";        
 import RecentItem from "../models/RecentItem";
 import PromoPost from "../models/PromoPost";
 
@@ -32,10 +32,8 @@ router.use((req: any, res, next) => {
 
 const daysShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-/* =====================================================
-   ✅ DASHBOARD STATS (NUMBERS + CHARTS)
-   GET /api/admin/stats
-===================================================== */
+/* DASHBOARD STATS (NUMBERS + CHARTS)
+   GET /api/admin/stats */
 router.get("/stats", async (_req, res) => {
   try {
     const totalUsers = await User.countDocuments({ role: "customer" });
@@ -49,7 +47,7 @@ router.get("/stats", async (_req, res) => {
 
     const totalRepairs = await Repair.countDocuments();
 
-    // ✅ Orders last 7 days (fill missing days with 0)
+    //  Orders last 7 days (fill missing days with 0)
     const from = new Date();
     from.setDate(from.getDate() - 6);
     from.setHours(0, 0, 0, 0);
@@ -58,7 +56,7 @@ router.get("/stats", async (_req, res) => {
       { $match: { isDeleted: false, createdAt: { $gte: from } } },
       {
         $group: {
-          _id: { $dayOfWeek: "$createdAt" }, // 1..7 (Sun..Sat)
+          _id: { $dayOfWeek: "$createdAt" }, 
           orders: { $sum: 1 },
         },
       },
@@ -79,7 +77,7 @@ router.get("/stats", async (_req, res) => {
       return { day: label, orders: dayMap.get(mongoDow) ?? 0 };
     });
 
-    // ✅ Order status breakdown
+    // Order status breakdown
     const statusAgg = await Order.aggregate([
       { $match: { isDeleted: false } },
       { $group: { _id: "$status", value: { $sum: 1 } } },
@@ -90,7 +88,7 @@ router.get("/stats", async (_req, res) => {
       value: s.value,
     }));
 
-    // ✅ Repairs by type
+    // Repairs by type
     let repairsByType: { name: string; value: number }[] = [];
     try {
       const repairTypeAgg = await Repair.aggregate([
@@ -169,9 +167,7 @@ router.get("/analytics/revenue", async (req, res) => {
   }
 });
 
-/* =====================================================
-   ✅ USERS
-===================================================== */
+/* USERS */
 router.get("/users", async (_req, res) => {
   try {
     const users = await User.find().select("_id name email role createdAt");
@@ -194,7 +190,7 @@ router.get("/technicians", async (_req, res) => {
   }
 });
 
-// ✅ APPROVE technician
+// APPROVE technician
 router.patch("/technicians/:id/approve", async (req, res) => {
   try {
     const updated = await User.findOneAndUpdate(
@@ -211,7 +207,7 @@ router.patch("/technicians/:id/approve", async (req, res) => {
   }
 });
 
-// ✅ REJECT technician
+// REJECT technician
 router.patch("/technicians/:id/reject", async (req, res) => {
   try {
     const updated = await User.findOneAndUpdate(
@@ -261,9 +257,7 @@ router.delete("/users/:id", async (req, res) => {
   }
 });
 
-/* =====================================================
-   ✅ ORDERS (PAGINATION + FILTER + SEARCH)
-===================================================== */
+/*  ORDERS (PAGINATION + FILTER + SEARCH) */
 router.get("/orders", async (req, res) => {
   try {
     const page = Math.max(1, Number(req.query.page || 1));
@@ -426,9 +420,7 @@ router.delete("/orders/:id", async (req, res) => {
   }
 });
 
-/* =====================================================
-   ✅ REPAIRS
-===================================================== */
+/* REPAIRS */
 router.get("/repairs", async (_req, res) => {
   try {
     const repairs = await Repair.find()
@@ -473,11 +465,9 @@ router.delete("/repairs/:id", async (req, res) => {
   }
 });
 
-/* =====================================================
-   ✅ PRODUCTS / RECENT ITEMS / PROMOS
-===================================================== */
+/* PRODUCTS / RECENT ITEMS / PROMOS */
 
-/* ✅ NEW: GET PRODUCTS LIST for Admin Category Posting
+/*  GET PRODUCTS LIST for Admin Category Posting
    GET /api/admin/products?category=cases&q=iphone
 */
 router.get("/products", async (req, res) => {
@@ -581,7 +571,7 @@ router.delete("/promos/:id", async (req, res) => {
   }
 });
 
-// ✅ CHANGE PASSWORD (Admin)
+// CHANGE PASSWORD (Admin)
 router.patch("/change-password", async (req: any, res) => {
   try {
     const { currentPassword, newPassword } = req.body ?? {};
